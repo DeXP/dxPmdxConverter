@@ -1,6 +1,7 @@
 bin
 info
 obj
+*.swp
 *.pmd
 *.mqo
 *.obj
