@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="dxPmdxConverter" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/dxPmdxConverter" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="comctl32" />
+					<Add library="comdlg32" />
+				</Linker>
+			</Target>
+			<Target title="win32">
+				<Option output="bin/win32/dxPmdxConverter" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/win32/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-pedantic" />
+					<Add option="-Wextra" />
+					<Add option="-Wall" />
+					<Add option="-DWINAPIONLY" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-nodefaultlibs" />
+					<Add option="-nostartfiles" />
+					<Add option="-mwindows" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="comdlg32" />
+					<Add library="shell32" />
+				</Linker>
+			</Target>
+			<Target title="win64">
+				<Option output="bin/win64/dxPmdxConverter-win64" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/win64/" />
+				<Option type="0" />
+				<Option compiler="x64_gnu_gcc_compiler" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-pedantic" />
+					<Add option="-Wextra" />
+					<Add option="-Wall" />
+					<Add option="-DWINAPIONLY" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-nodefaultlibs" />
+					<Add option="-nostartfiles" />
+					<Add option="-mwindows" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="comctl32" />
+					<Add library="comdlg32" />
+					<Add library="shell32" />
+				</Linker>
+			</Target>
+			<Target title="std32win">
+				<Option output="bin/std32win/dxPmdxConverter" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/std32win/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-pedantic" />
+					<Add option="-Wextra" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="comctl32" />
+					<Add library="comdlg32" />
+				</Linker>
+			</Target>
+			<Target title="crink32">
+				<Option output="bin/crink32/dxPmdxConverter" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/crink32/" />
+				<Option type="0" />
+				<Option compiler="crinklervc" />
+				<Compiler>
+					<Add option="/DWINAPIONLY" />
+				</Compiler>
+				<Linker>
+					<Add option="/ENTRY:smain" />
+					<Add option="/HASHSIZE:1" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="comctl32" />
+					<Add library="comdlg32" />
+				</Linker>
+			</Target>
+			<Target title="win32vc">
+				<Option output="bin/vc32/dxPmdxConverter" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/vc32/" />
+				<Option type="0" />
+				<Option compiler="msvc8" />
+				<Compiler>
+					<Add option="/fp:fast" />
+					<Add option="/fp:except-" />
+					<Add option="/Oy" />
+					<Add option="/O1" />
+					<Add option="/W3" />
+					<Add option="/c" />
+					<Add option="/GS-" />
+					<Add option="/QIfist" />
+					<Add option="/DWINAPIONLY" />
+				</Compiler>
+				<Linker>
+					<Add option="/nologo" />
+					<Add option="/ENTRY:smain" />
+					<Add option="/NODEFAULTLIB" />
+					<Add option="/SUBSYSTEM:WINDOWS" />
+					<Add option="/FILEALIGN:0x200" />
+					<Add option="/FORCE:MULTIPLE" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="comctl32" />
+					<Add library="comdlg32" />
+					<Add library="shell32" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="dxFileIO.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="dxFileIO.h" />
+		<Unit filename="dxPmdxConverter.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
+			<Option weight="5" />
+		</Unit>
+		<Unit filename="pmdx2obj.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="pmdx2obj.h" />
+		<Unit filename="resource.h" />
+		<Unit filename="startMain.S">
+			<Option target="win32" />
+		</Unit>
+		<Unit filename="startMain64.S">
+			<Option target="win64" />
+		</Unit>
+		<Unit filename="wingui.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="wingui.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

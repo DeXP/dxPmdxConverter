@@ -1,0 +1,8 @@
+bin
+info
+obj
+*.pmd
+*.mqo
+*.obj
+*.mtl
+*.layout

@@ -1,0 +1,86 @@
+# depslib dependency file v1.0
+1424629715 source:e:\work\pmdx2obj\pmdx2obj.c
+	"pmdx2obj.h"
+
+1424633812 source:e:\work\pmdx2obj\startmain.s
+
+1424600878 e:\work\pmdx2obj\dxfileio.h
+	<windows.h>
+	<stdarg.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+
+1424629718 source:e:\work\pmdx2obj\dxfileio.c
+	"dxFileIO.h"
+
+1354191818 source:e:\work\pmdx2obj\startmain64.s
+
+1424634825 source:e:\work\pmdx2obj\main.c
+	"pmdx2obj.h"
+	"wingui.h"
+
+1424629632 e:\work\pmdx2obj\pmdx2obj.h
+	"dxFileIO.h"
+
+1424624336 e:\work\pmdx2obj\wingui.h
+	<windows.h>
+	<commctrl.h>
+	"resource.h"
+	"pmdx2obj.h"
+
+1424776477 source:e:\work\pmdx2obj\wingui.c
+	"wingui.h"
+
+1424706424 source:e:\work\pmdx2obj\dxpmdxconverter.rc
+	"resource.h"
+	"afxres.h"
+
+1424706394 e:\work\pmdx2obj\resource.h
+
+1424629169 e:\work\pmdx2obj\afxres.h
+	<windows.h>
+
+1424953451 source:e:\work\dxpmdxconverter\main.c
+	"pmdx2obj.h"
+	"wingui.h"
+
+1424961073 e:\work\dxpmdxconverter\pmdx2obj.h
+	"dxFileIO.h"
+
+1424945051 e:\work\dxpmdxconverter\dxfileio.h
+	<windows.h>
+	<stdarg.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+
+1424799416 e:\work\dxpmdxconverter\wingui.h
+	<windows.h>
+	<commctrl.h>
+	<richedit.h>
+	"resource.h"
+	"pmdx2obj.h"
+
+1424966392 e:\work\dxpmdxconverter\resource.h
+
+1424944868 source:e:\work\dxpmdxconverter\dxfileio.c
+	"dxFileIO.h"
+
+1424967925 source:e:\work\dxpmdxconverter\dxpmdxconverter.rc
+	"resource.h"
+	"afxres.h"
+
+1424629169 e:\work\dxpmdxconverter\afxres.h
+	<windows.h>
+
+1424967569 source:e:\work\dxpmdxconverter\pmdx2obj.c
+	"pmdx2obj.h"
+
+1424793272 source:e:\work\dxpmdxconverter\startmain.s
+
+1424970334 source:e:\work\dxpmdxconverter\wingui.c
+	"wingui.h"
+
+1354191818 source:e:\work\dxpmdxconverter\startmain64.s
+
