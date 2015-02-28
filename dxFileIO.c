@@ -10,7 +10,7 @@ dxInFileType dxOpenRead(const char* filename){
 	ft.readed = 0;
 
 	if( (ft.File = CreateFile(filename, GENERIC_READ, 0, NULL, OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL, NULL	)) == INVALID_HANDLE_VALUE) return ft;
+		FILE_ATTRIBUTE_NORMAL, NULL	)) == INVALID_HANDLE_VALUE) return ft;
 
 	ft.sizeHi = 0;
 	ft.sizeLo = GetFileSize(ft.File,&ft.sizeHi);
@@ -39,13 +39,13 @@ int dxCloseInFile(dxInFileType ft){
 		ft.Map = NULL;
 	}
 
-   if( ft.File != INVALID_HANDLE_VALUE ){
-      if( !CloseHandle(ft.File) ) return 0;
-      ft.File = INVALID_HANDLE_VALUE;
-   }
+	if( ft.File != INVALID_HANDLE_VALUE ){
+		if( !CloseHandle(ft.File) ) return 0;
+		ft.File = INVALID_HANDLE_VALUE;
+	}
 
-   ft.isOpen = FALSE;
-   return 1;
+	ft.isOpen = FALSE;
+	return 1;
 }
 
 
@@ -80,104 +80,122 @@ int dxPrintf(char * format, ...){
 
 
 int flushWrite(dxOutFileType file){
-    DWORD dwWritten;
-    FPRBUF[FPRIND+1] = 0;
-    WriteFile(file, FPRBUF, FPRIND, &dwWritten, NULL);
-    FPRIND = 0;
-    return dwWritten;
+	DWORD dwWritten;
+	FPRBUF[FPRIND+1] = 0;
+	WriteFile(file, FPRBUF, FPRIND, &dwWritten, NULL);
+	FPRIND = 0;
+	return dwWritten;
 }
 
 int dxFprintf(dxOutFileType file, char* format, ...){
-    short degree;
-    long i, j, frac, mul, dec;
-    double fl, div;
-    va_list arg_ptr;
-    char fmt[7];
+	short degree;
+	long i, j, frac, mul, dec;
+	double fl, div;
+	va_list arg_ptr;
+	char fmt[7];
 
-    i=0;
-    /*FPRIND=0;*/
-    va_start(arg_ptr, format);
-    while(format[i]!=0){
-        if( format[i] == '%' ){
-            /* Print formatted output */
-            i++;
-            switch( format[i] ){
-                case 'd':
-                    FPRIND += wsprintf(FPRBUF+FPRIND, "%d", va_arg(arg_ptr, int) );
-                break;
-                case 'l':
-                    FPRIND += wsprintf(FPRBUF+FPRIND, "%ld", va_arg(arg_ptr, long) );
-                    if( format[i+1] == 'd' ) i++; /*  For "%ld" format - skip "d" */
-                    if( format[i+1] == 'u' ) i++;
-                break;
-                case 'c':
-                    FPRBUF[FPRIND++] = (char)va_arg(arg_ptr, int);
-                break;
-                case 's':
-                    FPRIND += wsprintf(FPRBUF+FPRIND, "%s", va_arg(arg_ptr, char*));
-                break;
-                case '.':
-                    /* dot. So float */
-                    i++;
-                    if( (format[i]>='0') && (format[i]<='9') ){
-                        degree = format[i]-'0';
-                        mul = 1;
-                        div = 1;
-                        for(j=0; j<degree; j++){
-                            mul *= 10;
-                            div /= 10;
-                        }
-                        fl = va_arg(arg_ptr, double);
-                        if( fl < 0 ){
-                            FPRBUF[FPRIND++] = '-';
-                            fl = -fl;
-                        }
+	i=0;
+	/*FPRIND=0;*/
+	va_start(arg_ptr, format);
+	while(format[i]!=0){
+		if( format[i] == '%' ){
+			/* Print formatted output */
+			i++;
+			switch( format[i] ){
+				case 'd':
+					FPRIND += wsprintf(FPRBUF+FPRIND, "%d", va_arg(arg_ptr, int) );
+				break;
+				case 'l':
+					FPRIND += wsprintf(FPRBUF+FPRIND, "%ld", va_arg(arg_ptr, long) );
+					if( format[i+1] == 'd' ) i++; /*  For "%ld" format - skip "d" */
+					if( format[i+1] == 'u' ) i++;
+				break;
+				case 'c':
+					FPRBUF[FPRIND++] = (char)va_arg(arg_ptr, int);
+				break;
+				case 's':
+					FPRIND += wsprintf(FPRBUF+FPRIND, "%s", va_arg(arg_ptr, char*));
+				break;
+				case '.':
+					/* dot. So float */
+					i++;
+					if( (format[i]>='0') && (format[i]<='9') ){
+						degree = format[i]-'0';
+						mul = 1;
+						div = 1;
+						for(j=0; j<degree; j++){
+							mul *= 10;
+							div /= 10;
+						}
+						fl = va_arg(arg_ptr, double);
+						if( fl < 0 ){
+							FPRBUF[FPRIND++] = '-';
+							fl = -fl;
+						}
 
 #if defined(_MSC_VER)
-                        dec = (long)fl;
-                        if( (dec >=0) && (dec > fl) ) dec -= 1;
-                        if( (dec < 0) && (dec < fl) ) dec += 1;
+						dec = (long)fl;
+						if( (dec >=0) && (dec > fl) ) dec -= 1;
+						if( (dec < 0) && (dec < fl) ) dec += 1;
 #else
-                        if( (fl*mul - (long)(fl*mul)) >=0.5 ) fl += div;
-                        dec = (long)fl;
+						if( (fl*mul - (long)(fl*mul)) >=0.5 ) fl += div;
+						dec = (long)fl;
 #endif
-                        if( dec < 0 ) dec = -dec;
+						if( dec < 0 ) dec = -dec;
 
 
-                        fl -= dec;
-                        fl *= mul;
-                        frac = (long)fl; /* Visual studio hack  :-( */
-                        if( frac < 0 ) frac = -frac;
+						fl -= dec;
+						fl *= mul;
+						frac = (long)fl; /* Visual studio hack  :-( */
+						if( frac < 0 ) frac = -frac;
 
-                        if( frac >= mul){
-                            frac -= mul;
-                            dec += 1;
-                        }
+						if( frac >= mul){
+							frac -= mul;
+							dec += 1;
+						}
 
-                        FPRIND += wsprintf(FPRBUF+FPRIND, "%ld", dec );
-                        FPRBUF[FPRIND++] = '.';
-                        wsprintf(fmt, "%%.%dld", degree);
-                        FPRIND += wsprintf(FPRBUF+FPRIND, fmt/*"%.6ld"*/, frac);
-                        i++;
-                    }
-                break;
-                default:
-                    FPRBUF[FPRIND++] = format[i];
-                break;
-            }
-        } else {
-            FPRBUF[FPRIND++] = format[i];
-        }
-        i++;
+						FPRIND += wsprintf(FPRBUF+FPRIND, "%ld", dec );
+						FPRBUF[FPRIND++] = '.';
+						wsprintf(fmt, "%%.%dld", degree);
+						FPRIND += wsprintf(FPRBUF+FPRIND, fmt/*"%.6ld"*/, frac);
+						i++;
+					}
+				break;
+				default:
+					FPRBUF[FPRIND++] = format[i];
+				break;
+			}
+		} else {
+			FPRBUF[FPRIND++] = format[i];
+		}
+		i++;
 
-        if( FPRIND >= FPRBUF_LEN-20 ) flushWrite(file);
-    }
-    va_end(arg_ptr);
-    FPRBUF[FPRIND+1] = 0;
+		if( FPRIND >= FPRBUF_LEN-20 ) flushWrite(file);
+	}
+	va_end(arg_ptr);
+	FPRBUF[FPRIND+1] = 0;
 
-    /* WriteFile(file, FPRBUF, k, &dwWritten, NULL); */
+	/* WriteFile(file, FPRBUF, k, &dwWritten, NULL); */
 	if( FPRIND >= FPRBUF_LEN-20 ) flushWrite(file);
 	return FPRIND;
+}
+
+
+int dxFileExists(const char* fileName){
+	return GetFileAttributes(fileName) != INVALID_FILE_ATTRIBUTES;
+}
+
+#else
+
+int dxFileExists(const char* fileName){
+	FILE *file;
+	file = fopen(fileName, "r");
+	if( file != NULL ){
+		fclose(file);
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 #endif /* WINAPIONLY */

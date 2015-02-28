@@ -1,6 +1,5 @@
 #include "wingui.h"
-
-/*HWND hWnd, hDlg;*/
+#ifdef USEWINGUI
 
 #if defined(_MSC_VER)
 #pragma function(memset)
@@ -11,6 +10,24 @@ void *memset(void *s, int c, size_t n){
     return s;
 }
 int _fltused = 0;
+    #ifdef _M_IX86
+    __declspec(naked) void _ftol2(){
+        __asm {
+            fistp qword ptr [esp-8]
+            mov   edx,[esp-4]
+            mov   eax,[esp-8]
+            ret
+        }
+    }
+
+    __declspec(naked) void _ftol2_sse(){
+        __asm {
+            fistp dword ptr [esp-4]
+            mov   eax,[esp-4]
+            ret
+        }
+    }
+    #endif
 #endif
 
 __inline DWORD dxDeltaTime(FILETIME endTime, FILETIME startTime){
@@ -67,38 +84,34 @@ void dxMsgBox(HWND hDlg, UINT icon, int titleId, int textId){
     MessageBox(hDlg, TEXT(buf), TEXT(title), icon | MB_OK);
 }
 
-BOOL FileExists(LPCTSTR fileName){
-   return GetFileAttributes(fileName) != INVALID_FILE_ATTRIBUTES;
-}
-
 
 int guiDoConvert(HWND hDlg, const char* fileName, int format){
     char buf[MAX_PATH];
     char buf2[MAX_PATH];
     FILETIME sTime, curTime;
     unsigned int i;
-	int res;
-	int notExCnt = 0;
-	BOOL doCheck = IsDlgButtonChecked(hDlg, IDC_ADDCHECK);
-	HWND hwndProgressBar = GetDlgItem(hDlg, IDC_PROGRESSBAR);
-	TPMDObj p;
+    int res;
+    int notExCnt = 0;
+    BOOL doCheck = IsDlgButtonChecked(hDlg, IDC_ADDCHECK);
+    HWND hwndProgressBar = GetDlgItem(hDlg, IDC_PROGRESSBAR);
+    TPMDObj p;
 
     GetSystemTimeAsFileTime(&sTime);
-	PmdObjInit(&p, format);
-	p.precision = SendMessage(GetDlgItem(hDlg, IDC_COMBOPREC), CB_GETCURSEL, 0, 0) + 1;
-	res = 0;
+    PmdObjInit(&p, format);
+    p.precision = SendMessage(GetDlgItem(hDlg, IDC_COMBOPREC), CB_GETCURSEL, 0, 0) + 1;
+    res = 0;
 
     clearLog(hDlg);
-	SendMessage(hwndProgressBar, PBM_SETPOS, 2, 0);
-	dxSetState(hDlg, IDS_STA_READING, sTime);
-	res |= PmdReadFile(&p, fileName);
-	SendMessage(hwndProgressBar, PBM_SETPOS, 25, 0);
+    SendMessage(hwndProgressBar, PBM_SETPOS, 2, 0);
+    dxSetState(hDlg, IDS_STA_READING, sTime);
+    res |= Read3dFile(&p, fileName);
+    SendMessage(hwndProgressBar, PBM_SETPOS, 25, 0);
     if( res < 0 ) return res;
 
     dxSetState(hDlg, IDS_STA_WRMATER, sTime);
-	res |= ObjWriteMaterial(&p);
-	SendMessage(hwndProgressBar, PBM_SETPOS, 50, 0);
-	if( res < 0 ) return res;
+    res |= ObjWriteMaterial(&p);
+    SendMessage(hwndProgressBar, PBM_SETPOS, 50, 0);
+    if( res < 0 ) return res;
 
     if( p.matErrCnt > 0 ){
         dxSetState(hDlg, IDS_STA_SPH, sTime);
@@ -114,8 +127,8 @@ int guiDoConvert(HWND hDlg, const char* fileName, int format){
     if( doCheck ){
         for(i=0; i< p.materialCount; i++){
             wsprintf(buf, "%s\\%s", p.outBase, p.fm[i].fileName);
-            /* dxPrintf("%s\n", buf); */
-            if( ! FileExists(buf) ){
+            /*dxPrintf("%s\n", buf);*/
+            if( ! dxFileExists(buf) ){
                 if( notExCnt == 0 ) dxSetState(hDlg, IDS_STA_MATNOTEX, sTime);
                 p.fm[i].errId = 2;
                 notExCnt++;
@@ -128,23 +141,23 @@ int guiDoConvert(HWND hDlg, const char* fileName, int format){
 
     dxSetState(hDlg, IDS_STA_WRVERTEX, sTime);
     res |= ObjWriteVertex(&p);
-	SendMessage(hwndProgressBar, PBM_SETPOS, 75, 0);
+    SendMessage(hwndProgressBar, PBM_SETPOS, 75, 0);
     if( res < 0 ) return res;
 
     dxSetState(hDlg, IDS_STA_WRFACES, sTime);
     res |= ObjWriteFaces(&p);
-	SendMessage(hwndProgressBar, PBM_SETPOS, 100, 0);
+    SendMessage(hwndProgressBar, PBM_SETPOS, 100, 0);
     if( res < 0 ) return res;
 
     dxSetState(hDlg, IDS_STA_CONVEND, sTime);
-	PmdObjFree(&p);
-	GetSystemTimeAsFileTime(&curTime);
+    PmdObjFree(&p);
+    GetSystemTimeAsFileTime(&curTime);
 
-	LoadString(GetModuleHandle(NULL), IDS_TOTALTIME, buf2, MAX_PATH/sizeof(TCHAR));
-	wsprintf(buf, buf2, dxDeltaTime(curTime, sTime) );
-	addLog(hDlg, buf);
+    LoadString(GetModuleHandle(NULL), IDS_TOTALTIME, buf2, MAX_PATH/sizeof(TCHAR));
+    wsprintf(buf, buf2, dxDeltaTime(curTime, sTime) );
+    addLog(hDlg, buf);
 
-	return res;
+    return res;
 }
 
 void OnDropFiles(HWND hDlg, HDROP hDrop){
@@ -173,7 +186,7 @@ INT_PTR CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
                     ZeroMemory(&ofn, sizeof(ofn));
                     ofn.lStructSize = sizeof(ofn);
                     ofn.hwndOwner = hDlg;
-                    ofn.lpstrFilter = "PMD (*.pmd)\0*.pmd\0All (*.*)\0*.*\0";
+                    ofn.lpstrFilter = "PMD, PMX (*.pmd;*.pmx)\0*.pmd;*.pmx\0PMD (*.pmd)\0*.pmd\0PMX (*.pmx)\0*.pmx\0All (*.*)\0*.*\0";
                     ofn.lpstrFile = fileName;
                     ofn.nMaxFile = MAX_PATH;
                     ofn.Flags = OFN_FILEMUSTEXIST;
@@ -285,3 +298,4 @@ int GuiCreateWindow(){
     ExitProcess(0);
 }
 
+#endif /* Use WinGui ? */

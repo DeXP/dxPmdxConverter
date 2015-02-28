@@ -3,9 +3,16 @@
 
 #include "dxFileIO.h"
 
-#define dxFloat4 float
+#if defined(_MSC_VER)
 #define dxULong4 unsigned long
 #define dxUShort2 unsigned short
+#else
+#include <stdint.h>
+#define dxULong4 uint32_t
+#define dxUShort2 uint16_t
+#endif
+
+#define dxFloat4 float
 #define dxInt1 char
 
 
@@ -22,6 +29,12 @@
 #define FORMAT_OBJ 0
 #define FORMAT_MQO 1
 
+#define PMX_BDEF1 0
+#define PMX_BDEF2 1
+#define PMX_BDEF4 2
+#define PMX_SDEF  3
+
+
 #pragma pack (1)
 typedef struct {
 	dxFloat4 vx, vy, vz, nx, ny, nz, u, v;
@@ -33,7 +46,7 @@ typedef struct {
 
 #pragma pack (1)
 typedef struct {
-    dxUShort2 face[3];
+	dxUShort2 face[3];
 } TIndex;
 /* sizeof(TIndex) = 6 */
 
@@ -48,22 +61,59 @@ typedef struct {
 
 #pragma pack (1)
 typedef struct {
-    char fileName[MATNAME_LEN];
-    dxInt1 errId;
+	dxInt1 face[3];
+} TIndex1;
+
+#pragma pack (1)
+typedef struct {
+	dxULong4 face[3];
+} TIndex4;
+
+#pragma pack (1)
+typedef struct {
+	dxFloat4 difR, difG, difB, difA, specR, specG, specB, specularity, ambR, ambG, ambB;
+	dxInt1 drawingMode;
+	dxFloat4 edgeR, edgeG, edgeB, edgeA, edgeSize;
+} TPMXMatPart;
+
+#pragma pack (1)
+typedef struct {
+	char fileName[MAX_PATH];
+	dxInt1 errId;
 } TFixedMaterial;
 
 
+#pragma pack (1)
+typedef struct {
+	dxFloat4 vx, vy, vz, nx, ny, nz, u, v;
+} TPNUV;
+
+#pragma pack (1)
+typedef struct {
+	dxFloat4 x, y, z, w;
+} TaddUV;
+
+#pragma pack (1)
+typedef struct {
+	dxInt1 vertex;
+	dxInt1 texture;
+	dxInt1 material;
+	dxInt1 bone;
+	dxInt1 morph;
+	dxInt1 rigId;
+} TPMXIndexSizes;
+
 
 typedef struct {
-    dxInFileType in;
-    dxOutFileType out;
-    int precision;
-    int format;
-    char buf[20];
-    char outFile[MAX_PATH];
-    char outBase[MAX_PATH];
-    char mtlFile[MAX_PATH];
-    char mtlBase[BUF_LEN];
+	dxInFileType in;
+	dxOutFileType out;
+	int precision;
+	int format;
+	char buf[20];
+	char outFile[MAX_PATH];
+	char outBase[MAX_PATH];
+	char mtlFile[MAX_PATH];
+	char mtlBase[BUF_LEN];
 
 	dxFloat4 version;
 	char name[NAME_LEN + 1];
@@ -77,17 +127,26 @@ typedef struct {
 	TMaterial* mat;
 	TFixedMaterial* fm;
 	dxULong4 matErrCnt;
+
+	/* PMX */
+	dxInt1 dataCount;
+	dxInt1 textEncoding;
+	dxInt1 addUVcount;
+	TPMXIndexSizes indexSize;
 } TPMDObj;
 
 
-int Pmd2Obj(const char* fileName, int format);
+int Pmd2Obj(const char* fileName, int format, int precision);
 
+int Read3dFile(TPMDObj* p, const char* fileName);
 char* PmdFloatFormat(TPMDObj* p, const char* format, char* buf);
 int PmdObjInit(TPMDObj* p, int format);
-int PmdReadFile(TPMDObj* p, const char* fileName);
 int ObjWriteMaterial(TPMDObj* p);
 int ObjWriteVertex(TPMDObj* p);
 int ObjWriteFaces(TPMDObj* p);
 int PmdObjFree(TPMDObj* p);
+
+int PmExtendedReadFile(TPMDObj* p);
+int PmdReadFile(TPMDObj* p);
 
 #endif /* PMDX2OBJ_H */

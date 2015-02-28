@@ -2,6 +2,8 @@
 1424629715 source:e:\work\pmdx2obj\pmdx2obj.c
 	"pmdx2obj.h"
 
+1425146166 h"
+
 1424633812 source:e:\work\pmdx2obj\startmain.s
 
 1424600878 e:\work\pmdx2obj\dxfileio.h
@@ -10,6 +12,8 @@
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
+
+1425151860 
 
 1424629718 source:e:\work\pmdx2obj\dxfileio.c
 	"dxFileIO.h"
@@ -41,46 +45,83 @@
 1424629169 e:\work\pmdx2obj\afxres.h
 	<windows.h>
 
-1424953451 source:e:\work\dxpmdxconverter\main.c
+1424629169 >
+
+1425157647 source:e:\work\dxpmdxconverter\main.c
 	"pmdx2obj.h"
 	"wingui.h"
 
-1424961073 e:\work\dxpmdxconverter\pmdx2obj.h
+1425158663 e:\work\dxpmdxconverter\pmdx2obj.h
 	"dxFileIO.h"
+	<stdint.h>
 
-1424945051 e:\work\dxpmdxconverter\dxfileio.h
+1425158583 e:\work\dxpmdxconverter\dxfileio.h
 	<windows.h>
 	<stdarg.h>
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
+	<time.h>
 
-1424799416 e:\work\dxpmdxconverter\wingui.h
+1425145900 e:\work\dxpmdxconverter\wingui.h
 	<windows.h>
 	<commctrl.h>
 	<richedit.h>
 	"resource.h"
 	"pmdx2obj.h"
+	"dxFileIO.h"
 
 1424966392 e:\work\dxpmdxconverter\resource.h
 
-1424944868 source:e:\work\dxpmdxconverter\dxfileio.c
+1425126751 source:e:\work\dxpmdxconverter\dxfileio.c
 	"dxFileIO.h"
 
-1424967925 source:e:\work\dxpmdxconverter\dxpmdxconverter.rc
+1425145573 source:e:\work\dxpmdxconverter\dxpmdxconverter.rc
 	"resource.h"
 	"afxres.h"
 
 1424629169 e:\work\dxpmdxconverter\afxres.h
 	<windows.h>
 
-1424967569 source:e:\work\dxpmdxconverter\pmdx2obj.c
+1425157963 source:e:\work\dxpmdxconverter\pmdx2obj.c
 	"pmdx2obj.h"
 
 1424793272 source:e:\work\dxpmdxconverter\startmain.s
 
-1424970334 source:e:\work\dxpmdxconverter\wingui.c
+1425145880 source:e:\work\dxpmdxconverter\wingui.c
 	"wingui.h"
 
 1354191818 source:e:\work\dxpmdxconverter\startmain64.s
+
+1425157647 source:/mnt/work/work/dxPmdxConverter/main.c
+	"pmdx2obj.h"
+	"wingui.h"
+
+1425157266 /mnt/work/work/dxPmdxConverter/pmdx2obj.h
+	"dxFileIO.h"
+
+1425157734 /mnt/work/work/dxPmdxConverter/dxFileIO.h
+	<stdint.h>
+	<windows.h>
+	<stdarg.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<time.h>
+
+1425145900 /mnt/work/work/dxPmdxConverter/wingui.h
+	<windows.h>
+	<commctrl.h>
+	<richedit.h>
+	"resource.h"
+	"pmdx2obj.h"
+	"dxFileIO.h"
+
+1424966392 /mnt/work/work/dxPmdxConverter/resource.h
+
+1425126751 source:/mnt/work/work/dxPmdxConverter/dxFileIO.c
+	"dxFileIO.h"
+
+1425157631 source:/mnt/work/work/dxPmdxConverter/pmdx2obj.c
+	"pmdx2obj.h"
 

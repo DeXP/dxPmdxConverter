@@ -3,6 +3,7 @@ info
 obj
 *.swp
 *.pmd
+*.pmx
 *.mqo
 *.obj
 *.mtl

@@ -11,15 +11,10 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="House.pmx" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
-				<Linker>
-					<Add library="kernel32" />
-					<Add library="user32" />
-					<Add library="comctl32" />
-					<Add library="comdlg32" />
-				</Linker>
 			</Target>
 			<Target title="win32">
 				<Option output="bin/win32/dxPmdxConverter" prefix_auto="1" extension_auto="1" />
@@ -32,6 +27,7 @@
 					<Add option="-Wextra" />
 					<Add option="-Wall" />
 					<Add option="-DWINAPIONLY" />
+					<Add option="-DUSEWINGUI" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -42,6 +38,7 @@
 					<Add library="user32" />
 					<Add library="comdlg32" />
 					<Add library="shell32" />
+					<Add library="gcc" />
 				</Linker>
 			</Target>
 			<Target title="win64">
@@ -55,6 +52,7 @@
 					<Add option="-Wextra" />
 					<Add option="-Wall" />
 					<Add option="-DWINAPIONLY" />
+					<Add option="-DUSEWINGUI" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -66,6 +64,7 @@
 					<Add library="comctl32" />
 					<Add library="comdlg32" />
 					<Add library="shell32" />
+					<Add library="gcc" />
 				</Linker>
 			</Target>
 			<Target title="std32win">
@@ -117,8 +116,9 @@
 					<Add option="/W3" />
 					<Add option="/c" />
 					<Add option="/GS-" />
-					<Add option="/QIfist" />
+					<Add option="/Gs9999999" />
 					<Add option="/DWINAPIONLY" />
+					<Add option="/DUSEWINGUI" />
 				</Compiler>
 				<Linker>
 					<Add option="/nologo" />
@@ -127,11 +127,80 @@
 					<Add option="/SUBSYSTEM:WINDOWS" />
 					<Add option="/FILEALIGN:0x200" />
 					<Add option="/FORCE:MULTIPLE" />
+					<Add option="/STACK:0x100000,0x100000" />
 					<Add library="kernel32" />
 					<Add library="user32" />
 					<Add library="comctl32" />
 					<Add library="comdlg32" />
 					<Add library="shell32" />
+				</Linker>
+			</Target>
+			<Target title="clang32">
+				<Option output="bin/clang32/dxPmdxConverter" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/clang32/" />
+				<Option type="1" />
+				<Option compiler="clang" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-pedantic" />
+					<Add option="-Wall" />
+					<Add option="-Wextra" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="comdlg32" />
+					<Add library="shell32" />
+				</Linker>
+			</Target>
+			<Target title="win32cons">
+				<Option output="bin/win32console/dxPmdxConverter-console" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/win32console/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-pedantic" />
+					<Add option="-Wextra" />
+					<Add option="-Wall" />
+					<Add option="-DWINAPIONLY" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-nodefaultlibs" />
+					<Add option="-nostartfiles" />
+					<Add option="-mconsole" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="comdlg32" />
+					<Add library="shell32" />
+					<Add library="gcc" />
+				</Linker>
+			</Target>
+			<Target title="tcc32cons">
+				<Option output="bin/tcc/dxPmdxConverter-console" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/tcc/" />
+				<Option type="1" />
+				<Option compiler="tcc" />
+				<Compiler>
+					<Add option="-Wall" />
+				</Compiler>
+			</Target>
+			<Target title="console">
+				<Option output="bin/console/dxPmdxConverter-console" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/console/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="DragonTail.pmd" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-pedantic" />
+					<Add option="-Wextra" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
 				</Linker>
 			</Target>
 		</Build>
@@ -144,6 +213,13 @@
 		<Unit filename="dxFileIO.h" />
 		<Unit filename="dxPmdxConverter.rc">
 			<Option compilerVar="WINDRES" />
+			<Option target="win32" />
+			<Option target="win64" />
+			<Option target="std32win" />
+			<Option target="crink32" />
+			<Option target="win32vc" />
+			<Option target="clang32" />
+			<Option target="Debug" />
 		</Unit>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
@@ -153,17 +229,41 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="pmdx2obj.h" />
-		<Unit filename="resource.h" />
+		<Unit filename="resource.h">
+			<Option target="win32" />
+			<Option target="win64" />
+			<Option target="std32win" />
+			<Option target="crink32" />
+			<Option target="win32vc" />
+			<Option target="clang32" />
+			<Option target="Debug" />
+		</Unit>
 		<Unit filename="startMain.S">
 			<Option target="win32" />
+			<Option target="win32cons" />
 		</Unit>
 		<Unit filename="startMain64.S">
 			<Option target="win64" />
 		</Unit>
 		<Unit filename="wingui.c">
 			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="win32" />
+			<Option target="win64" />
+			<Option target="std32win" />
+			<Option target="crink32" />
+			<Option target="win32vc" />
+			<Option target="clang32" />
 		</Unit>
-		<Unit filename="wingui.h" />
+		<Unit filename="wingui.h">
+			<Option target="Debug" />
+			<Option target="win32" />
+			<Option target="win64" />
+			<Option target="std32win" />
+			<Option target="crink32" />
+			<Option target="win32vc" />
+			<Option target="clang32" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 			<envvars />
