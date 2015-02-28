@@ -42,7 +42,7 @@
 				</Linker>
 			</Target>
 			<Target title="win64">
-				<Option output="bin/win64/dxPmdxConverter-win64" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/win64/dxPmdxConverter.win64" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/win64/" />
 				<Option type="0" />
 				<Option compiler="x64_gnu_gcc_compiler" />
@@ -155,7 +155,7 @@
 				</Linker>
 			</Target>
 			<Target title="win32cons">
-				<Option output="bin/win32console/dxPmdxConverter-console" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/win32console/dxPmdxConverter.terminal" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/win32console/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
