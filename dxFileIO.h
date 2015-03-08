@@ -1,6 +1,29 @@
 #ifndef DXFILEIO
 #define DXFILEIO
 
+#if defined(_MSC_VER)
+	#define dxULong4 unsigned __int32
+	#define dxLong4 __int32
+	#define dxUShort2 unsigned __int16
+	#define dxPRIu32 "lu"
+#else
+	#include <inttypes.h>
+	#define dxULong4 uint32_t
+	#define dxLong4 int32_t
+	#define dxUShort2 uint16_t
+		#ifdef WINAPIONLY
+			#define dxPRIu32 "lu"
+		#else
+			#define dxPRIu32 PRIu32
+		#endif
+#endif
+#define dxFloat4 float
+#define dxInt1 char
+
+
+
+
+
 #define IOBUF_LEN 256
 /* #define FPRBUF_LEN 16384 */
 #define FPRBUF_LEN 8192
@@ -47,17 +70,22 @@
 
 	#define dxOpenWrite(filename) ( FPRIND=0,CreateFile(filename, GENERIC_WRITE, 0, NULL, \
                            CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL) )
+	#define dxOpenWriteBin dxOpenWrite
 	#define dxCloseOutFile(file) ( flushWrite(file),CloseHandle(file) )
 
 	#define dxPuts(str) ( dxPrintf("%s\n", str)
 	int dxPrintf(char * format, ...);
 	int dxFprintf(dxOutFileType file, char* format, ...);
+	#define dxFwrite(file, ptr, oneSize, count, writed) WriteFile(file, ptr, oneSize*count, &writed, NULL);
 
 	#define dxMemAlloc(x, y) ( GlobalAlloc(GMEM_FIXED, (x)*(y)) )
+	#define dxMemMAlloc(x) ( GlobalAlloc(GMEM_MOVEABLE, (x)) )
+	/* #define dxMemReAlloc(dst, cnt) ( GlobalUnlock(ptr),GlobalLock( GlobalReAlloc(dst, cnt, GMEM_MOVEABLE) )  ) */
 	#define dxMemCpy CopyMemory
-	#define dxMemFree GlobalFree
+	#define dxMemFree(ptr) ( GlobalUnlock(ptr),GlobalFree(ptr) )
 
 	#define dxStrCpy lstrcpy
+	#define dxStrCmp lstrcmp
 	#define dxStrLen lstrlen
 	#define dxWideCharToAscii(dst, src, length) ( WideCharToMultiByte(CP_ACP, 0, src, -1, dst, length, NULL, NULL) )
 
@@ -76,6 +104,7 @@
 	#define dxFileSize size_t
 	#define dxOpenRead(filename) ( fopen(filename, "rb") )
 	#define dxOpenWrite(filename) ( fopen(filename, "w+") )
+	#define dxOpenWriteBin(filename) ( fopen(filename, "wb+") )
 	#define dxInFileCheck(file) ( (file != NULL) )
 	#define dxOutFileCheck(file) ( (file != NULL) )
 	#define dxCloseInFile(file)  ( fclose(file),file=NULL )
@@ -84,12 +113,16 @@
 	#define dxPuts puts
 	#define dxPrintf printf
 	#define dxFprintf fprintf
+	#define dxFwrite(file, ptr, oneSize, count, writed) ( writed = fwrite(ptr, oneSize, count, file) )
 
 	#define dxMemAlloc calloc
+	#define dxMemMAlloc malloc
+	/* #define dxMemReAlloc realloc */
 	#define dxMemCpy memcpy
 	#define dxMemFree free
 
 	#define dxStrCpy strcpy
+	#define dxStrCmp strcmp
 	#define dxStrLen strlen
 	#define dxWideCharToAscii(dst, src, length) wcstombs(dst, src, length)
 

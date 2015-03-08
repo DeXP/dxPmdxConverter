@@ -6,5 +6,7 @@ obj
 *.pmx
 *.mqo
 *.obj
+*.bmp
+*.png
 *.mtl
 *.layout

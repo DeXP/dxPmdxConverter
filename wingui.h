@@ -9,6 +9,7 @@
 #include "resource.h"
 #include "pmdx2obj.h"
 #include "dxFileIO.h"
+#include "bmpconvert.h"
 
 int GuiCreateWindow();
 #endif

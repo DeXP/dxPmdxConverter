@@ -1,38 +1,44 @@
-/*
-#define WINAPIONLY 1
-*/
 #include "pmdx2obj.h"
+#include "bmpconvert.h"
 
 #ifdef USEWINGUI
-#include "wingui.h"
+	#include "wingui.h"
 #endif
 
-#ifndef WINAPIONLY
-#define ConsoleMain main
-#endif
+/*#ifndef WINAPIONLY
+	#define ConsoleMain main
+#endif*/
 
 
 #ifdef USEWINGUI
+#ifdef WINAPIONLY
 int smain(){
-	/*return Pmd2Obj("DragonTail.pmd", FORMAT_OBJ);*/
-	/* return Pmd2Obj("e:\\OneMangaDay\\test\\loud gumi.pmd", FORMAT_MQO); */
+#else
+int main(){
+#endif
+	/*return Pmd2Obj("DragonTail.pmd", FORMAT_OBJ, -1);*/
+	/* return Pmd2Obj("e:\\OneMangaDay\\test\\loud gumi.pmd", FORMAT_OBJ, -1); */
 	/* return Pmd2Obj("House.pmx", FORMAT_OBJ, -1); */
 	return GuiCreateWindow();
 }
 
 #else
+/* No WIN GUI -- Console application */
 
 #ifdef WINAPIONLY
 int smain(){
 #else
-int ConsoleMain(int argc, char** argv){
+int main(int argc, char** argv){
 #endif
 	char fileName[MAX_PATH];
+	char tmpPath[MAX_PATH];
 	TPMDObj p;
-	int format = FORMAT_MQO;
+	int format = FORMAT_OBJ;
 	int precision = -1;
 	int res;
 	int i;
+	int isBmp = 0;
+	int hasFile = 0;
 	dxClockT startTime;
 #ifdef WINAPIONLY
 	int argc;
@@ -60,12 +66,18 @@ int ConsoleMain(int argc, char** argv){
 				case 'm':
 					format = FORMAT_MQO;
 				break;
+				case 'b':
+					isBmp = 1;
+				break;
 				case 'p':
 					precision = argv[i][2] - '0';
 				break;
 			}
 		} else {
-			if( dxFileExists(argv[i]) ) dxStrCpy(fileName, argv[i]);
+			if( dxFileExists(argv[i]) ){
+				dxStrCpy(fileName, argv[i]);
+				hasFile = 1;
+			}
 		}
 	}
 
@@ -77,7 +89,23 @@ int ConsoleMain(int argc, char** argv){
 	dxPrintf("sizeof(TMaterial) = %lu\n", sizeof(TMaterial));*/
 
 	res = 0;
-	if( dxStrLen(fileName) > 0 ){
+	if( isBmp && hasFile ){
+		getPngName(fileName, tmpPath);
+		dxPrintf("Input file: %s\n", fileName);
+		dxPrintf("Output format: PNG\n");
+		dxPrintf("Output file: %s\n", tmpPath);
+		dxPrintf("==================\n");
+		startTime = dxClock();
+		res = bmp2png(fileName, tmpPath);
+		if( res != 0 ){
+			dxPrintf("Error code: %d\n", res);
+			if( res < 0 ) dxPrintf("BMP decode error...\n");
+				else dxPrintf("PNG encode error: %s\n", bmp2pngErrorText(res) );
+		}
+		dxPrintf("Done in %ld ms.\n", dxCurDeltaTime(startTime) );
+	}
+
+	if( !isBmp && hasFile ){
 		PmdObjInit(&p, format);
 		if( (precision > 0) && (precision < 8) ) p.precision = precision;
 
@@ -111,9 +139,19 @@ int ConsoleMain(int argc, char** argv){
 		if( res > 0 ) dxPrintf("Convert performed with minor errors.\n");
 		dxPrintf("Total covertation time: %ld ms.\n", dxCurDeltaTime(startTime) );
 
-	} else {
-		dxPrintf("dxPmdxConverter, console version\nUsage: dxPmdxConverter [-o][-m][-pN] filename\n\t-o - sets output format to OBJ\n\
-\t-m - sets output format to MQO. Default on.\n\t-pN - precision. 1<=N<=7\n\nExample: dxPmdxConverter -o -p5 myFile.pmx");
+	}
+
+	if( !hasFile ){
+		dxPrintf("dxPmdxConverter, console version\n\
+Usage: dxPmdxConverter [-o][-m][-b][-pN] filename\n\
+\t-o - sets output format to OBJ. Default on.\n\
+\t-m - sets output format to MQO.\n\
+\t-b - bitmap converter mode. Converts 'fileName' BMP to PNG.\n\
+\t-pN - float type precision. 1<=N<=7\n\
+\n\
+Examples:\n\
+\tdxPmdxConverter -o -p5 myFile.pmx\n\
+\tdxPmdxConverter -b myFile.bmp\n");
 	}
 
 #ifdef WINAPIONLY

@@ -3,18 +3,6 @@
 
 #include "dxFileIO.h"
 
-#if defined(_MSC_VER)
-#define dxULong4 unsigned long
-#define dxUShort2 unsigned short
-#else
-#include <stdint.h>
-#define dxULong4 uint32_t
-#define dxUShort2 uint16_t
-#endif
-
-#define dxFloat4 float
-#define dxInt1 char
-
 
 #ifndef MAX_PATH
 #define MAX_PATH 255
@@ -42,6 +30,7 @@ typedef struct {
 	dxInt1 bone0weight, edgeFlag;
 } TVertex;
 /* sizeof(TVertex) = 38 */
+#pragma pack()
 
 
 #pragma pack (1)
@@ -49,6 +38,8 @@ typedef struct {
 	dxUShort2 face[3];
 } TIndex;
 /* sizeof(TIndex) = 6 */
+#pragma pack()
+
 
 #pragma pack (1)
 typedef struct {
@@ -58,16 +49,22 @@ typedef struct {
 	char fileName[MATNAME_LEN];
 } TMaterial;
 /* sizeof(TMaterial) = 70 */
+#pragma pack()
+
 
 #pragma pack (1)
 typedef struct {
 	dxInt1 face[3];
 } TIndex1;
+#pragma pack()
+
 
 #pragma pack (1)
 typedef struct {
 	dxULong4 face[3];
 } TIndex4;
+#pragma pack()
+
 
 #pragma pack (1)
 typedef struct {
@@ -75,23 +72,30 @@ typedef struct {
 	dxInt1 drawingMode;
 	dxFloat4 edgeR, edgeG, edgeB, edgeA, edgeSize;
 } TPMXMatPart;
+#pragma pack()
+
 
 #pragma pack (1)
 typedef struct {
 	char fileName[MAX_PATH];
 	dxInt1 errId;
 } TFixedMaterial;
+#pragma pack()
 
 
 #pragma pack (1)
 typedef struct {
 	dxFloat4 vx, vy, vz, nx, ny, nz, u, v;
 } TPNUV;
+#pragma pack()
+
 
 #pragma pack (1)
 typedef struct {
 	dxFloat4 x, y, z, w;
 } TaddUV;
+#pragma pack()
+
 
 #pragma pack (1)
 typedef struct {
@@ -102,6 +106,7 @@ typedef struct {
 	dxInt1 morph;
 	dxInt1 rigId;
 } TPMXIndexSizes;
+#pragma pack()
 
 
 typedef struct {

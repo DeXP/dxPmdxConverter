@@ -1,8 +1,8 @@
 CC=gcc
 REMOVE=rm
-CFLAGS=-c -O2
+CFLAGS=-c -O2 -ansi -Wall -pedantic -Wextra -Wall
 LDFLAGS=-s
-SOURCES=main.c pmdx2obj.c dxFileIO.c
+SOURCES=main.c pmdx2obj.c dxFileIO.c bmpconvert.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=dxPmdxConverter
 

@@ -2,14 +2,10 @@
 #ifdef USEWINGUI
 
 #if defined(_MSC_VER)
-#pragma function(memset)
-void *memset(void *s, int c, size_t n){
-    unsigned char* p=s;
-    while(n--)
-        *p++ = (unsigned char)c;
-    return s;
-}
 int _fltused = 0;
+int abs(int x){
+	return (x < 0 ? -x : x);
+}
     #ifdef _M_IX86
     __declspec(naked) void _ftol2(){
         __asm {
@@ -60,6 +56,15 @@ void addLog(HWND hDlg, const char* str){
     SendMessage(log, WM_VSCROLL, SB_BOTTOM, 0L);
 }
 
+void addLogWithTime(HWND hDlg, const char* str, FILETIME startTime){
+    FILETIME curTime;
+    char buf[MAX_PATH];
+    GetSystemTimeAsFileTime(&curTime);
+
+    wsprintf(buf, "[%ld]\t%s\r\n", dxDeltaTime(curTime, startTime), str);
+    addLog(hDlg, buf);
+}
+
 void dxSetState(HWND hDlg, int stateId, FILETIME startTime){
     FILETIME curTime;
     char buf[MAX_PATH];
@@ -88,11 +93,14 @@ void dxMsgBox(HWND hDlg, UINT icon, int titleId, int textId){
 int guiDoConvert(HWND hDlg, const char* fileName, int format){
     char buf[MAX_PATH];
     char buf2[MAX_PATH];
+    char pngTexName[MAX_PATH];
     FILETIME sTime, curTime;
-    unsigned int i;
+    unsigned int i, j;
     int res;
     int notExCnt = 0;
-    BOOL doCheck = IsDlgButtonChecked(hDlg, IDC_ADDCHECK);
+    BOOL doCheck = 1; /*IsDlgButtonChecked(hDlg, IDC_ADDCHECK);*/
+    BOOL texConvert = IsDlgButtonChecked(hDlg, IDC_TEXCONVERT);
+    BOOL alreadyDone = 0;
     HWND hwndProgressBar = GetDlgItem(hDlg, IDC_PROGRESSBAR);
     TPMDObj p;
 
@@ -107,6 +115,35 @@ int guiDoConvert(HWND hDlg, const char* fileName, int format){
     res |= Read3dFile(&p, fileName);
     SendMessage(hwndProgressBar, PBM_SETPOS, 25, 0);
     if( res < 0 ) return res;
+
+    if( texConvert ){
+        dxSetState(hDlg, IDS_STA_TEXCONVERT, sTime);
+        /* Convert BMP textures to PNG */
+        for(i=0; i< p.materialCount; i++){
+            wsprintf(buf, "%s\\%s", p.outBase, p.fm[i].fileName);
+            /*dxPrintf("%s\n", buf);*/
+            getPngName(p.fm[i].fileName, pngTexName);
+            alreadyDone = 0;
+            for(j=0; j<i; j++)
+                if( dxStrCmp(pngTexName, p.fm[j].fileName) == 0 )
+                    alreadyDone = 1;
+            if( !alreadyDone && dxFileExists(buf) ){
+                getPngName(buf, buf2);
+                if( isBmpExt(buf) && (bmp2png(buf, buf2) == 0) ){
+                    /* Texture convert success */
+                    dxStrCpy(p.fm[i].fileName, pngTexName);
+
+                    wsprintf(buf, "  %s", p.fm[i].fileName);
+                    /*addLog(hDlg, buf); */
+                    addLogWithTime(hDlg, buf, sTime);
+                } else {
+                    /* BMP to PNG convert error */
+                    ;
+                }
+            }
+        }
+
+    }
 
     dxSetState(hDlg, IDS_STA_WRMATER, sTime);
     res |= ObjWriteMaterial(&p);
@@ -273,10 +310,10 @@ int GuiCreateWindow(){
         buf[0] = '0'+i;
         SendDlgItemMessage(hDlg, IDC_COMBOPREC, CB_ADDSTRING, 0, (LPARAM)buf);
     }
-    SendDlgItemMessage(hDlg, IDC_COMBOPREC, CB_SETCURSEL, 2, 0);
-    CheckRadioButton(hDlg, IDC_RADIOMQO, IDC_RADIOOBJ, IDC_RADIOMQO);
+    SendDlgItemMessage(hDlg, IDC_COMBOPREC, CB_SETCURSEL, 5, 0);
+    CheckRadioButton(hDlg, IDC_RADIOMQO, IDC_RADIOOBJ, IDC_RADIOOBJ);
 
-    CheckDlgButton(hDlg, IDC_ADDCHECK, BST_CHECKED);
+    /*CheckDlgButton(hDlg, IDC_ADDCHECK, BST_CHECKED);*/
     LoadString(GetModuleHandle(NULL), IDS_STA_WAITFILE, buf, MAX_PATH/sizeof(TCHAR));
     addLog(hDlg, buf);
     /* ShowWindow(hDlg, SW_SHOW); */

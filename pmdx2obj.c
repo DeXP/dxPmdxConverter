@@ -5,8 +5,8 @@ int PmdObjFree(TPMDObj* p){
 	if( p->ind != NULL ) dxMemFree(p->ind);
 	if( p->mat != NULL ) dxMemFree(p->mat);
 	if( p->fm != NULL ) dxMemFree(p->fm);
-	/*if( dxInFileCheck(p->in) ) dxCloseInFile(p->in);
-	if( dxOutFileCheck(p->out) ) dxCloseOutFile(p->out);*/
+	if( dxInFileCheck(p->in) ) dxCloseInFile(p->in);
+	if( dxOutFileCheck(p->out) ) dxCloseOutFile(p->out);
 	return 0;
 }
 
@@ -325,9 +325,9 @@ int PmdReadFile(TPMDObj* p){
 		return -3;
 	}
 
+	p->matErrCnt = 0;
 	for(i=0; i< p->materialCount; i++){
 		dxRead(p->in, &p->mat[i], sizeof(TMaterial), 1, res);
-		/* dxPrintf("%s\n", p->mat[i].fileName); */
 
 		dxStrCpy(p->fm[i].fileName, p->mat[i].fileName);
 		p->fm[i].errId = 0;
@@ -338,9 +338,12 @@ int PmdReadFile(TPMDObj* p){
 			p->matErrCnt++;
 		}
 		p->fm[i].fileName[j] = 0;
+
+		if( p->mat[i].difA >= 0.98 ) p->mat[i].difA = 1.0;
 	}
 	dxCloseInFile(p->in);
 
+	if( p->matErrCnt > 0 ) return 1;
 	return 0;
 }
 
@@ -353,17 +356,16 @@ int ObjWriteMaterial(TPMDObj* p){
 		return -5;
 	}
 	if( p->format == FORMAT_MQO ){
-		dxFprintf(p->out, "Metasequoia Document\nFormat Text Ver 1.0\nMaterial %lu {\n", p->materialCount);
+		dxFprintf(p->out, "Metasequoia Document\nFormat Text Ver 1.0\nMaterial %"dxPRIu32" {\n", p->materialCount);
 		PmdFloatFormat(p, "\t\"m%lu\" col(%f %f %f %f) dif(%f) amb(%f) emi(%f) spc(%f) power(%f)", p->buf);
 	}
-	p->matErrCnt = 0;
 	for(i=0; i< p->materialCount; i++){
 
 		if( p->format == FORMAT_MQO ){
 			dxFprintf(p->out, p->buf,
 				i, p->mat[i].difR, p->mat[i].difG, p->mat[i].difB, p->mat[i].difA,
 				1.0, /* dif */
-				(p->mat[i].ambR + p->mat[i].ambG + p->mat[i].difB)/3.0, /*amb */
+				(p->mat[i].ambR + p->mat[i].ambG + p->mat[i].ambB)/3.0, /*amb */
 				0.4, /* emi */
 				(p->mat[i].specR + p->mat[i].specG + p->mat[i].specB)/3.0,
 				p->mat[i].specularity
@@ -377,15 +379,14 @@ int ObjWriteMaterial(TPMDObj* p){
 			dxFprintf(p->out, PmdFloatFormat(p, "Kd %f %f %f\n", p->buf), p->mat[i].difR, p->mat[i].difG, p->mat[i].difB);
 			dxFprintf(p->out, PmdFloatFormat(p, "Ks %f %f %f\n", p->buf), p->mat[i].specR, p->mat[i].specG, p->mat[i].specB);
 			dxFprintf(p->out, PmdFloatFormat(p, "Ns %f\n", p->buf), p->mat[i].specularity);
+			dxFprintf(p->out, "#Toon %d; EdgeFlag %d\n", p->mat[i].toonNumb, p->mat[i].edgeFlag);
 			dxFprintf(p->out, PmdFloatFormat(p, "d %f\n\n", p->buf), p->mat[i].difA);
 		}
 	}
 	if( p->format == FORMAT_MQO ) dxFprintf(p->out, "}");
 	if( p->format == FORMAT_OBJ ) dxCloseOutFile(p->out);
-	if( p->matErrCnt > 0 ) return 1;
 	return 0;
 }
-
 
 int ObjWriteVertex(TPMDObj* p){
 	unsigned long i;
@@ -406,9 +407,16 @@ int ObjWriteVertex(TPMDObj* p){
 
 		PmdFloatFormat(p, "vt %f %f\n", p->buf);
 		for(i=0; i< p->vertexCount; i++)
-			dxFprintf(p->out, p->buf, p->v[i].u, p->v[i].v);
+			dxFprintf(p->out, p->buf, p->v[i].u, - p->v[i].v);
+
+		/*PmdFloatFormat(p, "vn %f %f %f\n", p->buf);
+		for(i=0; i< p->vertexCount; i++)
+			dxFprintf(p->out, p->buf,
+				p->v[i].nx,
+				p->v[i].ny,
+				p->v[i].nz);*/
 	} else {
-		dxFprintf(p->out, "\nObject \"%s\" {\n\tvertex %lu {\n", p->name, p->vertexCount);
+		dxFprintf(p->out, "\nObject \"%s\" {\n\tvertex %"dxPRIu32" {\n", p->name, p->vertexCount);
 		PmdFloatFormat(p, "\t\t%f %f %f\n", p->buf);
 		for(i=0; i< p->vertexCount; i++)
 			dxFprintf(p->out, p->buf,
@@ -428,7 +436,7 @@ int ObjWriteFaces(TPMDObj* p){
 	dxUShort2 x, y, z;
 
 	if( p->format == FORMAT_OBJ ) dxFprintf(p->out, "usemtl m0\n");
-		else dxFprintf(p->out, "\tface %ld {\n", p->indexCount);
+		else dxFprintf(p->out, "\tface %"dxPRIu32" {\n", p->indexCount);
 	PmdFloatFormat(p, "\t\t3 V(%d %d %d) M(%lu) UV(%f %f %f %f %f %f)\n", p->buf);
 	for(i=0; i< p->indexCount; i++){
 		if( curCnt >= (p->mat[curInd].indecesNumber/3) ){
@@ -459,7 +467,7 @@ int ObjWriteFaces(TPMDObj* p){
 	return 0;
 }
 
-/*
+
 int Pmd2ObjBin(TPMDObj* p, const char* fileName){
 	int res;
 	res = Read3dFile(p, fileName);
@@ -485,4 +493,4 @@ int Pmd2Obj(const char* fileName, int format, int precision){
 	if( (precision > 0) && (precision < 8) ) p.precision = precision;
 	return Pmd2ObjBin(&p, fileName);
 }
-*/
+
