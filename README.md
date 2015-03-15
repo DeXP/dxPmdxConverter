@@ -7,7 +7,7 @@ Inspired by [Pmd2mqo GUI](https://github.com/DeXP/pmd2mqoGUI), written from scra
 
 Windows version (with GUI) uses WinAPI only.
 
-![Screenshot](raw/master/dxPmdxConverter-scr.png)
+![Screenshot](https://raw.githubusercontent.com/DeXP/dxPmdxConverter/master/dxPmdxConverter-scr.png)
 
 Usage sample: http://onemangaday.dexp.in/tutorials/pmd-custom-hair.html 
 
