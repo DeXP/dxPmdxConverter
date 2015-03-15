@@ -37,7 +37,7 @@ __inline DWORD dxDeltaTime(FILETIME endTime, FILETIME startTime){
 }
 
 void clearLog(HWND hDlg){
-    char* buf = {""};
+    char* buf = "";
     HWND log = GetDlgItem(hDlg, IDC_LOGRICH);
     int iOriginalLength = GetWindowTextLength(log);
     SendMessage(log, EM_SETSEL, (WPARAM)0, (LPARAM)iOriginalLength);
@@ -71,9 +71,7 @@ void dxSetState(HWND hDlg, int stateId, FILETIME startTime){
     char buf2[MAX_PATH];
 
     GetSystemTimeAsFileTime(&curTime);
-
     LoadString(GetModuleHandle(NULL), stateId, buf2, MAX_PATH/sizeof(TCHAR));
-    /* SetDlgItemText(hDlg, IDC_STATELABEL, buf2); */
 
     wsprintf(buf, "[%ld]\t%s\r\n", dxDeltaTime(curTime, startTime), buf2);
     addLog(hDlg, buf);
@@ -98,14 +96,17 @@ int guiDoConvert(HWND hDlg, const char* fileName, int format){
     unsigned int i, j;
     int res;
     int notExCnt = 0;
-    BOOL doCheck = 1; /*IsDlgButtonChecked(hDlg, IDC_ADDCHECK);*/
+    BOOL doCheck = 1;
     BOOL texConvert = IsDlgButtonChecked(hDlg, IDC_TEXCONVERT);
     BOOL alreadyDone = 0;
     HWND hwndProgressBar = GetDlgItem(hDlg, IDC_PROGRESSBAR);
     TPMDObj p;
 
     GetSystemTimeAsFileTime(&sTime);
+    /*p.materialCount = -555;
+    dxPrintf("-- Before init p.materialCount = %d\n", p.materialCount);*/
     PmdObjInit(&p, format);
+    /*dxPrintf("-- After init p.materialCount = %d\n", p.materialCount);*/
     p.precision = SendMessage(GetDlgItem(hDlg, IDC_COMBOPREC), CB_GETCURSEL, 0, 0) + 1;
     res = 0;
 
@@ -134,13 +135,12 @@ int guiDoConvert(HWND hDlg, const char* fileName, int format){
                     dxStrCpy(p.fm[i].fileName, pngTexName);
 
                     wsprintf(buf, "  %s", p.fm[i].fileName);
-                    /*addLog(hDlg, buf); */
                     addLogWithTime(hDlg, buf, sTime);
                 } else {
                     /* BMP to PNG convert error */
                     ;
                 }
-            }
+            } else if( alreadyDone ) dxStrCpy(p.fm[i].fileName, pngTexName);
         }
 
     }
@@ -154,7 +154,6 @@ int guiDoConvert(HWND hDlg, const char* fileName, int format){
         dxSetState(hDlg, IDS_STA_SPH, sTime);
         for(i=0; i< p.materialCount; i++)
             if( p.fm[i].errId != 0 ){
-                /*wsprintf(buf, "%s ", p.fm[i].fileName);*/
                 wsprintf(buf, "  %s\r\n", p.mat[i].fileName);
                 addLog(hDlg, buf);
             }
@@ -204,6 +203,54 @@ void OnDropFiles(HWND hDlg, HDROP hDrop){
     SetWindowText( GetDlgItem(hDlg, IDC_INPUTEDIT), fileName );
 }
 
+INT_PTR CALLBACK AboutProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
+    char buf[MAX_PATH];
+    HICON hIcon;
+
+    switch(uMsg){
+        case WM_INITDIALOG:
+            hIcon = LoadIcon( GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MYICON1) );
+            SendMessage(hDlg, WM_SETICON, ICON_SMALL, 0);
+            SendDlgItemMessage(hDlg, IDC_ICONPIC, STM_SETIMAGE, IMAGE_ICON, (LPARAM)hIcon );
+        break;
+        case WM_SETCURSOR:
+            if(
+               ( (HWND)wParam == GetDlgItem(hDlg, IDC_TUTLINK) ) ||
+               ( (HWND)wParam == GetDlgItem(hDlg, IDC_GITLINK) )
+            ){
+                SetCursor(LoadCursor(NULL, IDC_HAND));
+                SetWindowLongPtr(hDlg, DWLP_MSGRESULT, TRUE);
+                return TRUE;
+            }
+        break;
+        case WM_CTLCOLORSTATIC:
+            if(
+               ( (HWND)lParam == GetDlgItem(hDlg, IDC_TUTLINK) ) ||
+               ( (HWND)lParam == GetDlgItem(hDlg, IDC_GITLINK) )
+            ){
+                SetBkMode((HDC)wParam,TRANSPARENT);
+                SetTextColor((HDC)wParam, RGB(10,10,150));
+                return (INT_PTR)GetSysColorBrush(COLOR_MENU);
+            }
+        break;
+        case WM_COMMAND:
+            switch(LOWORD(wParam)){
+                case IDC_AOKBUT:
+                    DestroyWindow(hDlg);
+                    return TRUE;
+                break;
+                case IDC_TUTLINK:
+                case IDC_GITLINK:
+                    GetWindowText( (HWND)lParam, buf, MAX_PATH / sizeof(TCHAR) );
+                    ShellExecute(NULL, "open", buf, NULL, NULL, SW_SHOWNORMAL);
+                    return TRUE;
+            }
+        case WM_CLOSE:
+            DestroyWindow(hDlg);
+            return TRUE;
+    }
+    return FALSE;
+}
 
 INT_PTR CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
     OPENFILENAME ofn;
@@ -264,7 +311,7 @@ INT_PTR CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
 
         case WM_SYSCOMMAND:
             if( LOWORD(wParam) == SC_CONTEXTHELP){
-                dxMsgBox(hDlg, MB_ICONINFORMATION, IDS_SUCCESS, IDS_ABOUTMSG);
+                CreateDialogParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_ABOUTDIALOG), hDlg, AboutProc, 0);
                 return TRUE;
             }
         break;
@@ -313,7 +360,6 @@ int GuiCreateWindow(){
     SendDlgItemMessage(hDlg, IDC_COMBOPREC, CB_SETCURSEL, 5, 0);
     CheckRadioButton(hDlg, IDC_RADIOMQO, IDC_RADIOOBJ, IDC_RADIOOBJ);
 
-    /*CheckDlgButton(hDlg, IDC_ADDCHECK, BST_CHECKED);*/
     LoadString(GetModuleHandle(NULL), IDS_STA_WAITFILE, buf, MAX_PATH/sizeof(TCHAR));
     addLog(hDlg, buf);
     /* ShowWindow(hDlg, SW_SHOW); */

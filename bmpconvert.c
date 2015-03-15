@@ -15,8 +15,8 @@
 static void qswap(void *e1, void *e2, int size){
 	char t;
 	int x = size;
-	char *pi = (char *) ( e1 );
-	char *pj = (char *) ( e2 );
+	char* pi = (char *) ( e1 );
+	char* pj = (char *) ( e2 );
 	do {
 		t = *pi;
 		*pi++ = *pj;
@@ -26,22 +26,21 @@ static void qswap(void *e1, void *e2, int size){
 
 void qsort(void* ptr, size_t n, size_t size, int (*compare)(const void*, const void*) ){
     size_t i;
-    char* mp;
     char* base = (char*)ptr;
+    char* midp = base;
 
     if( n <= 1 ) return;
-    mp = base;
     for( i=1; i<n; ++i ){
         if( compare(base, base + size*i) > 0 ){
-            mp += size;
-            if( mp != (base+size*i) ){
-				qswap(base+size*i, mp, size);
+            midp += size;
+            if( midp != (base+size*i) ){
+				qswap(base+size*i, midp, size);
             }
         }
     }
-    qswap(base, mp, size);
-    qsort(base, (mp - base)/size, size, compare);
-    qsort(mp + size, n - 1 - (mp-base)/size, size, compare);
+    qswap(base, midp, size);
+    qsort(base, (midp - base)/size, size, compare);
+    qsort(midp + size, n - 1 - (midp-base)/size, size, compare);
 }
 
 #define strlen lstrlen
@@ -56,23 +55,29 @@ void *memset(void *s, int c, size_t n){
 }
 #else
 void* memset(void * ptr, int value, size_t num){
-	FillMemory(ptr, num, value);
+	/* Actually, memset do NOTHING.
+	Used only in zlib in lodepng for fill zeroes.
+	Replaced by "HEAP_ZERO_MEMORY" flag...*/
+	if( (ptr) && (num < 2) ) FillMemory(ptr, num, value);
 	return ptr;
 }
 #endif
 
 
 void* lodepng_malloc(size_t size){
-	return HeapAlloc( GetProcessHeap(), HEAP_NO_SERIALIZE, size );
+	/*return HeapAlloc( GetProcessHeap(), HEAP_NO_SERIALIZE | HEAP_ZERO_MEMORY, size );*/
+	return dxMemMAlloc(size);
 }
 
 void* lodepng_realloc(void* ptr, size_t new_size){
-	if( !ptr ) return lodepng_malloc(new_size);
-	return HeapReAlloc( GetProcessHeap(), HEAP_NO_SERIALIZE, ptr, new_size );
+	/*if( !ptr ) return lodepng_malloc(new_size);
+	return HeapReAlloc( GetProcessHeap(), HEAP_NO_SERIALIZE | HEAP_ZERO_MEMORY, ptr, new_size );*/
+	return dxMemReAlloc(ptr, new_size);
 }
 
 void lodepng_free(void* ptr){
-	HeapFree( GetProcessHeap(), HEAP_NO_SERIALIZE, ptr );
+	/*HeapFree( GetProcessHeap(), HEAP_NO_SERIALIZE, ptr );*/
+	dxMemFree(ptr);
 }
 
 #endif
@@ -156,7 +161,6 @@ int bmp2png(const char* bmpName, const char* pngName){
 	unsigned char* png;
 	size_t pngsize;
 	unsigned long PNGnumChannels;
-	dxULong4 Upngsize;
 	unsigned error;
 
 
@@ -218,6 +222,7 @@ int bmp2png(const char* bmpName, const char* pngName){
 		}
 	}
 
+/*
 #ifndef USEWINGUI
 	dxPrintf("bfReserved1     = %d\n", bmfh.bfReserved1);
 	dxPrintf("bfReserved2     = %d\n", bmfh.bfReserved2);
@@ -249,6 +254,7 @@ int bmp2png(const char* bmpName, const char* pngName){
 	dxPrintf("alphaMask       = 0x%x\n", bmha.biAlphaMask);
 	dxPrintf("out File Name   = '%s'\n", pngName);
 #endif
+*/
 
 
 	if( (bmih.biCompression != 0) && (bmih.biCompression != 3) ) return -5;
@@ -261,13 +267,12 @@ int bmp2png(const char* bmpName, const char* pngName){
 	while( (width + padWidth) %4 != 0 ){
 		padWidth++;
 	}
-	dxPrintf("padWidth = %"dxPRIu32"\n", padWidth);
+	/* dxPrintf("padWidth = %"dxPRIu32"\n", padWidth); */
 
 	PNGnumChannels = 3;
 	if( numChannels == 4 ) PNGnumChannels = 4;
 	image = dxMemAlloc(width*height*PNGnumChannels, sizeof(char) );
 	if( image == NULL ) return -3;
-	/*for(x=0; x<width*height*4; x++) image[x] = 127;*/
 
 	for(y = 0; y < height; y++){
 		for(x = 0; x < width; x++){
@@ -303,8 +308,11 @@ int bmp2png(const char* bmpName, const char* pngName){
 	} else {
 		error = lodepng_encode24(&png, &pngsize, image, width, height);
 	}
-	Upngsize = (dxULong4) pngsize;
-	dxPrintf("Encode error = %u; pngSize = %"dxPRIu32"\n", error, Upngsize);
+
+#ifndef USEWINGUI
+	dxPrintf("PNG Encode code = %u; pngSize = %"dxPRIu32"\n", error, (dxULong4) pngsize);
+#endif
+
 	dxMemFree(image);
 
 	out = dxOpenWriteBin(pngName);

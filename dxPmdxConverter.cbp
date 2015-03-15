@@ -11,10 +11,11 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="House.pmx -b gol.bmp" />
+				<Option parameters="House.pmx -b scr2.bmp" />
 				<Compiler>
 					<Add option="-ansi" />
 					<Add option="-g" />
+					<Add option="-DWINAPIONLY" />
 				</Compiler>
 				<Linker>
 					<Add option="-Wl,--stack=0x1000000" />
@@ -23,6 +24,7 @@
 					<Add library="user32" />
 					<Add library="comdlg32" />
 					<Add library="shell32" />
+					<Add library="gdi32" />
 					<Add library="gcc" />
 				</Linker>
 			</Target>
@@ -49,11 +51,12 @@
 					<Add library="user32" />
 					<Add library="comdlg32" />
 					<Add library="shell32" />
+					<Add library="gdi32" />
 					<Add library="gcc" />
 				</Linker>
 			</Target>
 			<Target title="win64">
-				<Option output="bin/win64/dxPmdxConverter" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/win64/dxPmdxConverter.win64.exe" prefix_auto="0" extension_auto="0" />
 				<Option object_output="obj/win64/" />
 				<Option type="0" />
 				<Option compiler="x64_gnu_gcc_compiler" />
@@ -76,13 +79,14 @@
 					<Add library="comctl32" />
 					<Add library="comdlg32" />
 					<Add library="shell32" />
+					<Add library="gdi32" />
 					<Add library="gcc" />
 				</Linker>
 			</Target>
 			<Target title="std32win">
 				<Option output="bin/std32win/dxPmdxConverter" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/std32win/" />
-				<Option type="0" />
+				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
@@ -98,6 +102,7 @@
 					<Add library="user32" />
 					<Add library="comctl32" />
 					<Add library="comdlg32" />
+					<Add library="gdi32" />
 				</Linker>
 			</Target>
 			<Target title="win32vc">
@@ -130,6 +135,7 @@
 					<Add library="comctl32" />
 					<Add library="comdlg32" />
 					<Add library="shell32" />
+					<Add library="gdi32" />
 				</Linker>
 			</Target>
 			<Target title="clang32">
@@ -149,6 +155,7 @@
 					<Add library="user32" />
 					<Add library="comdlg32" />
 					<Add library="shell32" />
+					<Add library="gdi32" />
 				</Linker>
 			</Target>
 			<Target title="win32cons">
@@ -156,7 +163,6 @@
 				<Option object_output="obj/win32console/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="-b t013.bmp" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-pedantic" />
@@ -187,7 +193,7 @@
 				</Compiler>
 			</Target>
 			<Target title="console">
-				<Option output="bin/console/dxPmdxConverter-console" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/console/dxPmdxConverter-console.exe" prefix_auto="0" extension_auto="0" />
 				<Option object_output="obj/console/" />
 				<Option type="1" />
 				<Option compiler="gcc" />

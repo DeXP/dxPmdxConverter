@@ -14,6 +14,7 @@ int PmdObjInit(TPMDObj* p, int format){
 	p->format = format;
 	p->precision = 6;
 	if( format == FORMAT_MQO ) p->precision = 3;
+	p->materialCount = 0;
 	return 0;
 }
 
@@ -166,7 +167,6 @@ int PmExtendedReadFile(TPMDObj* p){
 
 	dxRead(p->in, &p->indexThreeCount, sizeof(p->indexThreeCount), 1, res);
 	p->indexCount = p->indexThreeCount / 3;
-	/* dxPrintf("Face Count = %lu\n", p->indexCount); */
 	p->ind = (TIndex*) dxMemAlloc(p->indexCount, sizeof(TIndex) );
 	if( p->ind == NULL ){
 		PmdObjFree(p);
@@ -191,7 +191,6 @@ int PmExtendedReadFile(TPMDObj* p){
 	}
 
 	dxRead(p->in, &TexCount, sizeof(dxULong4), 1, res);
-	/* dxPrintf("Tex count = %lu\n", TexCount); */
 	for(j=0; j<MAX_PATH; j++)
 		tmpFile[j] = 0;
 	for(i=0; i<TexCount; i++){
@@ -214,6 +213,7 @@ int PmExtendedReadFile(TPMDObj* p){
 		PmdObjFree(p);
 		return -3;
 	}
+	p->matErrCnt = 0;
 
 	for(i=0; i< p->materialCount; i++){
 		/* Skip material Local name */
@@ -265,13 +265,6 @@ int PmExtendedReadFile(TPMDObj* p){
 	}
 	dxCloseInFile(p->in);
 
-
-	/*dxPrintf("dataCount=%d; textEncoding=%d; addUVcount=%d;\n",
-			p->dataCount, p->textEncoding, p->addUVcount);
-	dxPrintf("localCharName=%lu; globalCharName=%lu; localComment=%lu; globalComment=%lu;\n",
-			p->localCharNameCount, p->globalCharNameCount, p->localCommentCount, p->globalCommentCount);
-	dxPrintf("BoneIndexSize=%d; VertexIndexSize=%d", p->indexSize.bone, p->indexSize.vertex);*/
-
 	return 0;
 }
 
@@ -296,8 +289,6 @@ int PmdReadFile(TPMDObj* p){
 
 	for(i=0; i< p->vertexCount; i++){
 		dxRead(p->in, &p->v[i], sizeof(TVertex), 1, res);
-		/*if( (i==0) || (i==1) ) dxPrintf("vx = %d; vy = %d; b0id='%hu', b1id=%hu, res = %d\n",
-			(int)v[i].vx, (int)v[i].vy, v[i].bone0id, v[i].bone1id, res);*/
 	}
 
 
@@ -351,7 +342,7 @@ int PmdReadFile(TPMDObj* p){
 int ObjWriteMaterial(TPMDObj* p){
 	unsigned long i;
 
-	p->out = dxOpenWrite(p->mtlFile);
+	p->out = dxOpenWriteBin(p->mtlFile);
 	if( ! dxOutFileCheck(p->out) ){
 		return -5;
 	}
@@ -392,7 +383,7 @@ int ObjWriteVertex(TPMDObj* p){
 	unsigned long i;
 
 	if( p->format == FORMAT_OBJ ){
-		p->out = dxOpenWrite(p->outFile);
+		p->out = dxOpenWriteBin(p->outFile);
 		if( ! dxOutFileCheck(p->out) ){
 			return -5;
 		}
@@ -468,7 +459,7 @@ int ObjWriteFaces(TPMDObj* p){
 }
 
 
-int Pmd2ObjBin(TPMDObj* p, const char* fileName){
+/*int Pmd2ObjBin(TPMDObj* p, const char* fileName){
 	int res;
 	res = Read3dFile(p, fileName);
 	if( res < 0 ) return res;
@@ -492,5 +483,5 @@ int Pmd2Obj(const char* fileName, int format, int precision){
 	PmdObjInit(&p, format);
 	if( (precision > 0) && (precision < 8) ) p.precision = precision;
 	return Pmd2ObjBin(&p, fileName);
-}
+}*/
 

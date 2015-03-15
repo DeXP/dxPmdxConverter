@@ -24,8 +24,7 @@
 
 
 
-#define IOBUF_LEN 256
-/* #define FPRBUF_LEN 16384 */
+#define IOBUF_LEN 512
 #define FPRBUF_LEN 8192
 
 
@@ -65,8 +64,8 @@
 	#define dxInFileCheck(file) ( (file.isOpen == TRUE) )
 	#define dxOutFileCheck(file) ( (file != INVALID_HANDLE_VALUE) )
 	int dxCloseInFile(dxInFileType ft);
-	void dxReadBin(dxInFileType* ft, void * ptr, size_t onesize, size_t count, DWORD* readed);
-	#define dxRead(file, ptr, onesize, count, readed) ( dxReadBin(&file, ptr, onesize, count, &readed) )
+	void dxReadInternal(dxInFileType* ft, void * ptr, size_t onesize, size_t count, DWORD* readed);
+	#define dxRead(file, ptr, onesize, count, readed) ( dxReadInternal(&file, ptr, onesize, count, &readed) )
 
 	#define dxOpenWrite(filename) ( FPRIND=0,CreateFile(filename, GENERIC_WRITE, 0, NULL, \
                            CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL) )
@@ -75,14 +74,23 @@
 
 	#define dxPuts(str) ( dxPrintf("%s\n", str)
 	int dxPrintf(char * format, ...);
+	#define dxSprintf wsprintf
 	int dxFprintf(dxOutFileType file, char* format, ...);
 	#define dxFwrite(file, ptr, oneSize, count, writed) WriteFile(file, ptr, oneSize*count, &writed, NULL);
 
+	/*
+	//Global Alloc memory implementation. Does NOT support ReAlloc
 	#define dxMemAlloc(x, y) ( GlobalAlloc(GMEM_FIXED, (x)*(y)) )
 	#define dxMemMAlloc(x) ( GlobalAlloc(GMEM_MOVEABLE, (x)) )
-	/* #define dxMemReAlloc(dst, cnt) ( GlobalUnlock(ptr),GlobalLock( GlobalReAlloc(dst, cnt, GMEM_MOVEABLE) )  ) */
-	#define dxMemCpy CopyMemory
 	#define dxMemFree(ptr) ( GlobalUnlock(ptr),GlobalFree(ptr) )
+	#define dxMemReAlloc(dst, cnt) ( GlobalUnlock(ptr),GlobalLock( GlobalReAlloc(dst, cnt, GMEM_MOVEABLE) )  )
+	*/
+	#define dxMemAlloc(x, y) ( HeapAlloc( GetProcessHeap(), HEAP_NO_SERIALIZE | HEAP_ZERO_MEMORY, (x)*(y) ) )
+	#define dxMemMAlloc( x ) ( HeapAlloc( GetProcessHeap(), HEAP_NO_SERIALIZE | HEAP_ZERO_MEMORY, (x) ) )
+	#define dxMemFree( ptr ) ( HeapFree ( GetProcessHeap(), HEAP_NO_SERIALIZE | HEAP_ZERO_MEMORY, ptr ) )
+	void* dxMemReAlloc(void* ptr, size_t new_size);
+
+	#define dxMemCpy CopyMemory
 
 	#define dxStrCpy lstrcpy
 	#define dxStrCmp lstrcmp
@@ -112,12 +120,13 @@
 	#define dxRead(file, buf, onesize, count, readed) ( res=fread(buf, onesize, count, file),res*=onesize )
 	#define dxPuts puts
 	#define dxPrintf printf
+	#define dxSprintf sprintf
 	#define dxFprintf fprintf
 	#define dxFwrite(file, ptr, oneSize, count, writed) ( writed = fwrite(ptr, oneSize, count, file) )
 
 	#define dxMemAlloc calloc
 	#define dxMemMAlloc malloc
-	/* #define dxMemReAlloc realloc */
+	#define dxMemReAlloc realloc
 	#define dxMemCpy memcpy
 	#define dxMemFree free
 

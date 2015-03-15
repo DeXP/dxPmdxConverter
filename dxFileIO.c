@@ -49,7 +49,7 @@ int dxCloseInFile(dxInFileType ft){
 }
 
 
-void dxReadBin(dxInFileType* ft, void* ptr, size_t onesize, size_t count, DWORD* readed){
+void dxReadInternal(dxInFileType* ft, void* ptr, size_t onesize, size_t count, DWORD* readed){
 	/* CopyMemory(ptr, ft->ptr, count*onesize); */
 	size_t i;
 	char *d = ptr;
@@ -178,6 +178,11 @@ int dxFprintf(dxOutFileType file, char* format, ...){
 	/* WriteFile(file, FPRBUF, k, &dwWritten, NULL); */
 	if( FPRIND >= FPRBUF_LEN-20 ) flushWrite(file);
 	return FPRIND;
+}
+
+void* dxMemReAlloc(void* ptr, size_t new_size){
+	if( !ptr ) return dxMemMAlloc(new_size);
+	return HeapReAlloc( GetProcessHeap(), HEAP_NO_SERIALIZE | HEAP_ZERO_MEMORY, ptr, new_size );
 }
 
 

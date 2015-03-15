@@ -5,10 +5,6 @@
 	#include "wingui.h"
 #endif
 
-/*#ifndef WINAPIONLY
-	#define ConsoleMain main
-#endif*/
-
 
 #ifdef USEWINGUI
 #ifdef WINAPIONLY
@@ -16,8 +12,6 @@ int smain(){
 #else
 int main(){
 #endif
-	/*return Pmd2Obj("DragonTail.pmd", FORMAT_OBJ, -1);*/
-	/* return Pmd2Obj("e:\\OneMangaDay\\test\\loud gumi.pmd", FORMAT_OBJ, -1); */
 	/* return Pmd2Obj("House.pmx", FORMAT_OBJ, -1); */
 	return GuiCreateWindow();
 }
@@ -30,15 +24,20 @@ int smain(){
 #else
 int main(int argc, char** argv){
 #endif
+/*int main(){*/
 	char fileName[MAX_PATH];
 	char tmpPath[MAX_PATH];
+	char pngTexName[MAX_PATH];
+	char pngFileName[MAX_PATH];
 	TPMDObj p;
 	int format = FORMAT_OBJ;
 	int precision = -1;
-	int res;
+	int res, alreadyDone;
 	int i;
+	unsigned int j, k;
 	int isBmp = 0;
 	int hasFile = 0;
+	int texConvert = 0;
 	dxClockT startTime;
 #ifdef WINAPIONLY
 	int argc;
@@ -71,6 +70,9 @@ int main(int argc, char** argv){
 				break;
 				case 'p':
 					precision = argv[i][2] - '0';
+				break;
+				case 't':
+					texConvert = 1;
 				break;
 			}
 		} else {
@@ -119,6 +121,33 @@ int main(int argc, char** argv){
 		res |= Read3dFile(&p, fileName);
 		dxPrintf("done! (%ld ms.)\n", dxCurDeltaTime(startTime) );
 		if( res >= 0 ){
+
+			if( texConvert ){
+				dxPrintf("Converting textures from BMP to PNG:\n");
+				for(j=0; j< p.materialCount; j++){
+					dxSprintf(tmpPath, "%s\\%s", p.outBase, p.fm[j].fileName);
+					/*dxPrintf("%s\n", tmpPath);*/
+					getPngName(p.fm[j].fileName, pngTexName);
+					alreadyDone = 0;
+					for(k=0; k<j; k++)
+						if( dxStrCmp(pngTexName, p.fm[k].fileName) == 0 )
+							alreadyDone = 1;
+					if( !alreadyDone && dxFileExists(tmpPath) ){
+						getPngName(tmpPath, pngFileName);
+						if( isBmpExt(tmpPath) && (bmp2png(tmpPath, pngFileName) == 0) ){
+							/* Texture convert success */
+							dxStrCpy(p.fm[j].fileName, pngTexName);
+
+							dxPrintf("  %s (%ld ms.)\n", p.fm[j].fileName, dxCurDeltaTime(startTime) );
+						} else {
+							/* BMP to PNG convert error */
+							;
+						}
+					} else if( alreadyDone ) dxStrCpy(p.fm[j].fileName, pngTexName);
+				}
+
+    }
+
 			dxPrintf("Writing output: Materials ... ");
 			res |= ObjWriteMaterial(&p);
 			dxPrintf("done! (%ld ms.)\n", dxCurDeltaTime(startTime) );
@@ -143,20 +172,22 @@ int main(int argc, char** argv){
 
 	if( !hasFile ){
 		dxPrintf("dxPmdxConverter, console version\n\
-Usage: dxPmdxConverter [-o][-m][-b][-pN] filename\n\
+Usage: dxPmdxConverter [-o][-m][-b][-t][-pN] filename\n\
 \t-o - sets output format to OBJ. Default on.\n\
 \t-m - sets output format to MQO.\n\
-\t-b - bitmap converter mode. Converts 'fileName' BMP to PNG.\n\
+\t-t - convert textures from BMP to PNG.\n\
 \t-pN - float type precision. 1<=N<=7\n\
+\t-b - bitmap converter mode. Converts 'fileName' BMP to PNG.\n\
 \n\
 Examples:\n\
-\tdxPmdxConverter -o -p5 myFile.pmx\n\
+\tdxPmdxConverter -o -p5 -t myFile.pmx\n\
 \tdxPmdxConverter -b myFile.bmp\n");
 	}
 
 #ifdef WINAPIONLY
 	for(i=0; i<argc; i++) dxMemFree( argv[i] );
 	dxMemFree( argv );
+	ExitProcess(res);
 #endif
 	return res;
 }

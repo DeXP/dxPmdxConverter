@@ -109,6 +109,7 @@ typedef struct {
 #pragma pack()
 
 
+#pragma pack (1)
 typedef struct {
 	dxInFileType in;
 	dxOutFileType out;
@@ -139,9 +140,10 @@ typedef struct {
 	dxInt1 addUVcount;
 	TPMXIndexSizes indexSize;
 } TPMDObj;
+#pragma pack()
 
 
-int Pmd2Obj(const char* fileName, int format, int precision);
+/*int Pmd2Obj(const char* fileName, int format, int precision);*/
 
 int Read3dFile(TPMDObj* p, const char* fileName);
 char* PmdFloatFormat(TPMDObj* p, const char* format, char* buf);
