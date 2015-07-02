@@ -65,4 +65,10 @@ int bmp2png(const char* bmpName, const char* pngName);
 const char* bmp2pngErrorText(int code);
 
 
+
+dxFileSize tarGetSize(const char* path);
+dxFileSize tarAppend(char* tar, const char* realPath, const char* filename);
+int gzipToFile(char* tar, dxFileSize tarSize, const char* archiveName);
+
+
 #endif

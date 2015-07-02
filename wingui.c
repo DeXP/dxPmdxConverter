@@ -2,6 +2,7 @@
 #ifdef USEWINGUI
 
 #if defined(_MSC_VER)
+    /* https://gist.github.com/mmozeiko/6a365d6c483fc721b63a#file-win32_crt_float-cpp */
 int _fltused = 0;
 int abs(int x){
 	return (x < 0 ? -x : x);
@@ -23,6 +24,74 @@ int abs(int x){
             ret
         }
     }
+
+    /* http://research.microsoft.com/en-us/um/redmond/projects/invisible/src/crt/md/i386/_ulldiv.c.htm */
+    __declspec(naked) void __cdecl _aulldiv(void)
+{
+    __asm {
+        push    ebx
+        push    esi
+
+#define DVNDLO  [esp + 12]
+#define DVNDHI  [esp + 16]
+#define DVSRLO  [esp + 20]
+#define DVSRHI  [esp + 24]
+
+        mov     eax,DVSRHI      ; check to see if divisor < 4194304K
+        or      eax,eax
+        jnz     short L1        ; nope, gotta do this the hard way
+        mov     ecx,DVSRLO      ; load divisor
+        mov     eax,DVNDHI      ; load high word of dividend
+        xor     edx,edx
+        div     ecx             ; get high order bits of quotient
+        mov     ebx,eax         ; save high bits of quotient
+        mov     eax,DVNDLO      ; edx:eax <- remainder:lo word of dividend
+        div     ecx             ; get low order bits of quotient
+        mov     edx,ebx         ; edx:eax <- quotient hi:quotient lo
+        jmp     short L2        ; restore stack and return
+
+L1:
+        mov     ecx,eax         ; ecx:ebx <- divisor
+        mov     ebx,DVSRLO
+        mov     edx,DVNDHI      ; edx:eax <- dividend
+        mov     eax,DVNDLO
+L3:
+        shr     ecx,1           ; shift divisor right one bit; hi bit <- 0
+        rcr     ebx,1
+        shr     edx,1           ; shift dividend right one bit; hi bit <- 0
+        rcr     eax,1
+        or      ecx,ecx
+        jnz     short L3        ; loop until divisor < 4194304K
+        div     ebx             ; now divide, ignore remainder
+        mov     esi,eax         ; save quotient
+
+        mul     dword ptr DVSRHI ; QUOT * DVSRHI
+        mov     ecx,eax
+        mov     eax,DVSRLO
+        mul     esi             ; QUOT * DVSRLO
+        add     edx,ecx         ; EDX:EAX = QUOT * DVSR
+        jc      short L4        ; carry means Quotient is off by 1
+
+        cmp     edx,DVNDHI      ; compare hi words of result and original
+        ja      short L4        ; if result > original, do subtract
+        jb      short L5        ; if result < original, we are ok
+        cmp     eax,DVNDLO      ; hi words are equal, compare lo words
+        jbe     short L5        ; if less or equal we are ok, else subtract
+L4:
+        dec     esi             ; subtract 1 from quotient
+L5:
+        xor     edx,edx         ; edx:eax <- quotient
+        mov     eax,esi
+
+L2:
+
+        pop     esi
+        pop     ebx
+
+        ret     16
+    }
+}
+
     #endif
 #endif
 
@@ -98,15 +167,13 @@ int guiDoConvert(HWND hDlg, const char* fileName, int format){
     int notExCnt = 0;
     BOOL doCheck = 1;
     BOOL texConvert = IsDlgButtonChecked(hDlg, IDC_TEXCONVERT);
+    BOOL doArchive = IsDlgButtonChecked(hDlg, IDC_DOARCHIVE);
     BOOL alreadyDone = 0;
     HWND hwndProgressBar = GetDlgItem(hDlg, IDC_PROGRESSBAR);
     TPMDObj p;
 
     GetSystemTimeAsFileTime(&sTime);
-    /*p.materialCount = -555;
-    dxPrintf("-- Before init p.materialCount = %d\n", p.materialCount);*/
     PmdObjInit(&p, format);
-    /*dxPrintf("-- After init p.materialCount = %d\n", p.materialCount);*/
     p.precision = SendMessage(GetDlgItem(hDlg, IDC_COMBOPREC), CB_GETCURSEL, 0, 0) + 1;
     res = 0;
 
@@ -141,10 +208,12 @@ int guiDoConvert(HWND hDlg, const char* fileName, int format){
                     ;
                 }
             } else if( alreadyDone ) dxStrCpy(p.fm[i].fileName, pngTexName);
+            SendMessage(hwndProgressBar, PBM_SETPOS, 100*i / p.materialCount, 0);
         }
 
     }
 
+    SendMessage(hwndProgressBar, PBM_SETPOS, 30, 0);
     dxSetState(hDlg, IDS_STA_WRMATER, sTime);
     res |= ObjWriteMaterial(&p);
     SendMessage(hwndProgressBar, PBM_SETPOS, 50, 0);
@@ -186,6 +255,12 @@ int guiDoConvert(HWND hDlg, const char* fileName, int format){
     if( res < 0 ) return res;
 
     dxSetState(hDlg, IDS_STA_CONVEND, sTime);
+
+    if( doArchive ){
+        Pmd2Gzip(&p);
+        dxSetState(hDlg, IDS_STA_ARCHIVEEND, sTime);
+    }
+
     PmdObjFree(&p);
     GetSystemTimeAsFileTime(&curTime);
 
@@ -300,12 +375,12 @@ INT_PTR CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
                         dxMsgBox(hDlg, MB_ICONWARNING, IDS_WARNING, IDS_WARNMSG);
                     }
                     break;
-                case IDC_RADIOMQO:
+                /*case IDC_RADIOMQO:
                     SendDlgItemMessage(hDlg, IDC_COMBOPREC, CB_SETCURSEL, 2, 0);
                     break;
                 case IDC_RADIOOBJ:
                     SendDlgItemMessage(hDlg, IDC_COMBOPREC, CB_SETCURSEL, 5, 0);
-                    break;
+                    break;*/
             }
         break;
 
@@ -381,4 +456,6 @@ int GuiCreateWindow(){
     ExitProcess(0);
 }
 
+#else
+void emptyFunction(){}
 #endif /* Use WinGui ? */

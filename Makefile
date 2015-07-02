@@ -21,3 +21,8 @@ clean:
 
 upx:
 	upx --ultra-brute $(EXECUTABLE) && mv $(EXECUTABLE) bin/$(EXECUTABLE).linux64.bin
+
+
+macos:
+	make -f Make.macos
+	make -f Make.macos upx

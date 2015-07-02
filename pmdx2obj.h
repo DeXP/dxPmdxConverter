@@ -2,11 +2,9 @@
 #define PMDX2OBJ_H
 
 #include "dxFileIO.h"
+#include "bmpconvert.h"
 
-
-#ifndef MAX_PATH
-#define MAX_PATH 255
-#endif
+#define DX_MAX_PATH 255
 
 #define BUF_LEN 100
 #define NAME_LEN 20
@@ -77,7 +75,7 @@ typedef struct {
 
 #pragma pack (1)
 typedef struct {
-	char fileName[MAX_PATH];
+	char fileName[DX_MAX_PATH];
 	dxInt1 errId;
 } TFixedMaterial;
 #pragma pack()
@@ -109,6 +107,7 @@ typedef struct {
 #pragma pack()
 
 
+
 #pragma pack (1)
 typedef struct {
 	dxInFileType in;
@@ -116,10 +115,12 @@ typedef struct {
 	int precision;
 	int format;
 	char buf[20];
-	char outFile[MAX_PATH];
-	char outBase[MAX_PATH];
-	char mtlFile[MAX_PATH];
+	char outFile[DX_MAX_PATH];
+	char outBase[DX_MAX_PATH];
+	char mtlFile[DX_MAX_PATH];
 	char mtlBase[BUF_LEN];
+	char gzipFile[DX_MAX_PATH];
+	char resultFile[DX_MAX_PATH];
 
 	dxFloat4 version;
 	char name[NAME_LEN + 1];
@@ -155,5 +156,8 @@ int PmdObjFree(TPMDObj* p);
 
 int PmExtendedReadFile(TPMDObj* p);
 int PmdReadFile(TPMDObj* p);
+
+int Pmd2Gzip(TPMDObj* p);
+
 
 #endif /* PMDX2OBJ_H */

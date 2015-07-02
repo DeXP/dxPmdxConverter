@@ -10,12 +10,11 @@
 				<Option output="bin/Debug/dxPmdxConverter" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
-				<Option compiler="gcc" />
-				<Option parameters="House.pmx -b scr2.bmp" />
+				<Option compiler="x64_gnu_gcc_compiler" />
+				<Option parameters="-c e:\OneMangaDay\test\DragonTail\drgtail.pmd" />
 				<Compiler>
 					<Add option="-ansi" />
 					<Add option="-g" />
-					<Add option="-DWINAPIONLY" />
 				</Compiler>
 				<Linker>
 					<Add option="-Wl,--stack=0x1000000" />
@@ -74,6 +73,8 @@
 					<Add option="-nodefaultlibs" />
 					<Add option="-nostartfiles" />
 					<Add option="-mwindows" />
+					<Add option="-Wl,--stack=0x1000000" />
+					<Add option="-Wl,--heap=0x1000000" />
 					<Add library="kernel32" />
 					<Add library="user32" />
 					<Add library="comctl32" />
@@ -159,10 +160,11 @@
 				</Linker>
 			</Target>
 			<Target title="win32cons">
-				<Option output="bin/win32console/dxPmdxConverter.terminal" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/win32console/dxPmdxConverter" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/win32console/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="-c e:\OneMangaDay\test\DragonTail\drgtail.pmd" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-pedantic" />
@@ -197,7 +199,7 @@
 				<Option object_output="obj/console/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="DragonTail.pmd" />
+				<Option parameters="-c e:\OneMangaDay\test\DragonTail\drgtail.pmd" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-pedantic" />
@@ -208,6 +210,24 @@
 				<Linker>
 					<Add option="-s" />
 				</Linker>
+			</Target>
+			<Target title="KolibriOS">
+				<Option output="bin/kolibri/dxPmdxConverter.kex" prefix_auto="0" extension_auto="0" />
+				<Option object_output="obj/kolibri/" />
+				<Option type="1" />
+				<Option compiler="kolibrios_gcc_compiler" />
+				<Option parameters="-c e:\OneMangaDay\test\DragonTail\drgtail.pmd" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-DNOSTAT" />
+					<Add option="-DKOLIBRIOS" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+				<ExtraCommands>
+					<Add after="kos32-objcopy.exe bin\kolibri\dxPmdxConverter.kex -O binary" />
+				</ExtraCommands>
 			</Target>
 		</Build>
 		<Compiler>

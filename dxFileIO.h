@@ -7,7 +7,12 @@
 	#define dxUShort2 unsigned __int16
 	#define dxPRIu32 "lu"
 #else
+	/*typedef unsigned uint32_t;
+	typedef int  int32_t;
+	typedef short  int16_t;
+	typedef unsigned short  uint16_t;*/
 	#include <inttypes.h>
+
 	#define dxULong4 uint32_t
 	#define dxLong4 int32_t
 	#define dxUShort2 uint16_t
@@ -19,9 +24,6 @@
 #endif
 #define dxFloat4 float
 #define dxInt1 char
-
-
-
 
 
 #define IOBUF_LEN 512
@@ -85,6 +87,9 @@
 	#define dxMemFree(ptr) ( GlobalUnlock(ptr),GlobalFree(ptr) )
 	#define dxMemReAlloc(dst, cnt) ( GlobalUnlock(ptr),GlobalLock( GlobalReAlloc(dst, cnt, GMEM_MOVEABLE) )  )
 	*/
+	#define dxBigAlloc(x, y) ( GlobalAlloc(GMEM_FIXED, (x)*(y)) )
+	#define dxBigFree(ptr) ( GlobalUnlock(ptr),GlobalFree(ptr) )
+
 	#define dxMemAlloc(x, y) ( HeapAlloc( GetProcessHeap(), HEAP_NO_SERIALIZE | HEAP_ZERO_MEMORY, (x)*(y) ) )
 	#define dxMemMAlloc( x ) ( HeapAlloc( GetProcessHeap(), HEAP_NO_SERIALIZE | HEAP_ZERO_MEMORY, (x) ) )
 	#define dxMemFree( ptr ) ( HeapFree ( GetProcessHeap(), HEAP_NO_SERIALIZE | HEAP_ZERO_MEMORY, ptr ) )
@@ -106,6 +111,7 @@
 	#include <stdlib.h>
 	#include <string.h>
 	#include <time.h>
+	#include <sys/stat.h>
 
 	#define dxInFileType FILE*
 	#define dxOutFileType FILE*
@@ -119,7 +125,11 @@
 	#define dxCloseOutFile(file) ( fclose(file),file=NULL )
 	#define dxRead(file, buf, onesize, count, readed) ( res=fread(buf, onesize, count, file),res*=onesize )
 	#define dxPuts puts
+#ifndef KOLIBRIOS
 	#define dxPrintf printf
+#else
+	#define dxPrintf con_printf
+#endif
 	#define dxSprintf sprintf
 	#define dxFprintf fprintf
 	#define dxFwrite(file, ptr, oneSize, count, writed) ( writed = fwrite(ptr, oneSize, count, file) )
@@ -130,10 +140,13 @@
 	#define dxMemCpy memcpy
 	#define dxMemFree free
 
+	#define dxBigAlloc dxMemAlloc
+	#define dxBigFree dxMemFree
+
 	#define dxStrCpy strcpy
 	#define dxStrCmp strcmp
 	#define dxStrLen strlen
-	#define dxWideCharToAscii(dst, src, length) wcstombs(dst, src, length)
+	#define dxWideCharToAscii(dst, src, length) /*wcstombs(dst, src, length)*/
 
 	#define dxClockT clock_t
 	#define dxClock clock
@@ -143,5 +156,17 @@
 
 #define dxCurDeltaTime(start) dxDeltaClockMs(dxClock(), start)
 int dxFileExists(const char* fileName);
+dxFileSize dxGetFileSize(const char* fileName);
+unsigned long dxFileModTime(const char* fileName);
+
+int ZeroFill(char* buf, int size);
+
+int dx_init_console(const char* title);
+
+
+#ifdef KOLIBRIOS
+void (* _cdecl con_printf)(const char* format,...);
+#endif
+
 
 #endif /* DXFILEIO */

@@ -24,11 +24,11 @@ int smain(){
 #else
 int main(int argc, char** argv){
 #endif
-/*int main(){*/
-	char fileName[MAX_PATH];
-	char tmpPath[MAX_PATH];
-	char pngTexName[MAX_PATH];
-	char pngFileName[MAX_PATH];
+/*dxOutFileType outTar;*/
+	char fileName[DX_MAX_PATH];
+	char tmpPath[DX_MAX_PATH];
+	char pngTexName[DX_MAX_PATH];
+	char pngFileName[DX_MAX_PATH];
 	TPMDObj p;
 	int format = FORMAT_OBJ;
 	int precision = -1;
@@ -36,6 +36,12 @@ int main(int argc, char** argv){
 	int i;
 	unsigned int j, k;
 	int isBmp = 0;
+	int compressOutput = 0;
+	int isGzip = 0;
+	int gzipPoint = 0;
+	dxFileSize curSize, tarSize;
+	char* tarBuf;
+
 	int hasFile = 0;
 	int texConvert = 0;
 	dxClockT startTime;
@@ -54,6 +60,7 @@ int main(int argc, char** argv){
 	}
 	dxMemFree( lpArgv );
 #endif
+	dx_init_console("dxPmdxConverter");
 
 	fileName[0] = 0;
 	for(i=1; i<argc; i++){
@@ -74,6 +81,13 @@ int main(int argc, char** argv){
 				case 't':
 					texConvert = 1;
 				break;
+				case 'c':
+					compressOutput = 1;
+				break;
+				case 'g':
+					gzipPoint = i+1;
+					isGzip = 1;
+				break;
 			}
 		} else {
 			if( dxFileExists(argv[i]) ){
@@ -91,6 +105,9 @@ int main(int argc, char** argv){
 	dxPrintf("sizeof(TMaterial) = %lu\n", sizeof(TMaterial));*/
 
 	res = 0;
+
+	if( isBmp && isGzip ) dxPrintf("Sorry, you cannot combine GZIP compression with BMP convertation...\n");
+
 	if( isBmp && hasFile ){
 		getPngName(fileName, tmpPath);
 		dxPrintf("Input file: %s\n", fileName);
@@ -107,7 +124,30 @@ int main(int argc, char** argv){
 		dxPrintf("Done in %ld ms.\n", dxCurDeltaTime(startTime) );
 	}
 
-	if( !isBmp && hasFile ){
+	if( !isBmp && isGzip ){
+		/* GZip archiever */
+		tarSize = 0;
+		dxStrCpy(fileName, argv[gzipPoint]);
+		for(i=gzipPoint+1; i<argc; i++){
+			if( dxFileExists(argv[i]) ){
+				tarSize += tarGetSize(argv[i]);
+			}
+		}
+		dxPrintf("Resulting TAR size: %lu\n", (long unsigned)tarSize );
+		tarBuf = (char*) dxBigAlloc(tarSize, 1);
+		curSize = 0;
+		for(i=gzipPoint+1; i<argc; i++){
+			if( dxFileExists(argv[i]) ){
+				curSize += tarAppend(tarBuf + curSize, argv[i], argv[i]);
+			}
+		}
+		dxPrintf("Real TAR size: %lu\n", (long unsigned)curSize );
+
+		gzipToFile(tarBuf, curSize, fileName);
+		dxBigFree(tarBuf);
+	}
+
+	if( !isBmp && !isGzip && hasFile ){
 		PmdObjInit(&p, format);
 		if( (precision > 0) && (precision < 8) ) p.precision = precision;
 
@@ -146,7 +186,7 @@ int main(int argc, char** argv){
 					} else if( alreadyDone ) dxStrCpy(p.fm[j].fileName, pngTexName);
 				}
 
-    }
+			}
 
 			dxPrintf("Writing output: Materials ... ");
 			res |= ObjWriteMaterial(&p);
@@ -162,6 +202,12 @@ int main(int argc, char** argv){
 				}
 			}
 		}
+		if( compressOutput ){
+			dxPrintf("Compressing output and textures into archive...\n");
+			Pmd2Gzip(&p);
+			dxPrintf("done! (%ld ms.)\n", dxCurDeltaTime(startTime) );
+		}
+
 		PmdObjFree(&p);
 		dxPrintf("==================\n");
 		if( res < 0 ) dxPrintf("!!! Convertation error !!!\n");
@@ -172,12 +218,14 @@ int main(int argc, char** argv){
 
 	if( !hasFile ){
 		dxPrintf("dxPmdxConverter, console version\n\
-Usage: dxPmdxConverter [-o][-m][-b][-t][-pN] filename\n\
+Usage: dxPmdxConverter [-o][-m][-b][-g][-t][-c][-pN] filename\n\
 \t-o - sets output format to OBJ. Default on.\n\
 \t-m - sets output format to MQO.\n\
 \t-t - convert textures from BMP to PNG.\n\
 \t-pN - float type precision. 1<=N<=7\n\
+\t-c - compress output into .tgz\n\
 \t-b - bitmap converter mode. Converts 'fileName' BMP to PNG.\n\
+\t-g arhiveName.tgz file1 dir1/file1 dir1/file2 - TAR.GZ compressor\n\
 \n\
 Examples:\n\
 \tdxPmdxConverter -o -p5 -t myFile.pmx\n\

@@ -191,7 +191,7 @@ int bmp2png(const char* bmpName, const char* pngName){
 		dxRead(in, &bmha, sizeof(bmha), 1, res);
 		readCount += sizeof(bmha);
 
-		redMask = bmha.biRedMask;
+		redMask = (unsigned short) bmha.biRedMask;
 		if( redMask == 0 ) redMask = 1;
 		for(x=0; x<16; x++)
 			if( (redMask & (1 << x)) > 0 ) redBitCnt++;
@@ -199,7 +199,7 @@ int bmp2png(const char* bmpName, const char* pngName){
 		while( (redMask % redDiv) == 0 ) redDiv *= 2;
 		redDiv /= 2;
 
-		greenMask = bmha.biGreenMask;
+		greenMask = (unsigned short) bmha.biGreenMask;
 		if( greenMask == 0 ) greenMask = 1;
 		for(x=0; x<16; x++)
 			if( (greenMask & (1 << x)) > 0 ) greenBitCnt++;
@@ -207,7 +207,7 @@ int bmp2png(const char* bmpName, const char* pngName){
 		while( (greenMask % greenDiv) == 0 ) greenDiv *= 2;
 		greenDiv /= 2;
 
-		blueMask = bmha.biBlueMask;
+		blueMask = (unsigned short) bmha.biBlueMask;
 		if( blueMask == 0 ) blueMask = 1;
 		for(x=0; x<16; x++)
 			if( (blueMask & (1 << x)) > 0 ) blueBitCnt++;
@@ -320,4 +320,142 @@ int bmp2png(const char* bmpName, const char* pngName){
 	dxFwrite(out, png, pngsize, 1, res);
 	dxCloseOutFile(out);
 	return error;
+}
+
+char* dec2octStr(unsigned long x, char buf[]){
+	int i;
+	int n = 0;
+	char tmp;
+	while( x >= 8 ){
+		buf[n++] = (x % 8) + '0';
+		x /= 8;
+	}
+	buf[n++] = (x % 8) + '0';
+	buf[n] = 0;
+	for(i=0; i<n/2; i++){
+		tmp = buf[i];
+		buf[i] = buf[n-i-1];
+		buf[n-i-1] = tmp;
+	}
+	return buf;
+}
+
+dxFileSize tarGetSize(const char* path){
+	const dxFileSize TAR_LEN = 512;
+	dxFileSize fsize, res;
+	int q;
+
+	/*if( type == DX_TAR_DIR ) return TAR_LEN;*/
+	fsize = dxGetFileSize(path);
+	q = fsize % TAR_LEN;
+
+	res = (fsize / TAR_LEN) * TAR_LEN;
+	if( q > 0 ) res += TAR_LEN;
+	return res + TAR_LEN;
+}
+
+dxFileSize tarAppend(char* tar, const char* path, const char* filename){
+	char octBuf[32] = {0};
+	unsigned int i, sum, iterCount;
+	dxFileSize fsize, res, readed;
+	dxInFileType in;
+	const dxFileSize TAR_LEN = 512;
+	const char type = 0;
+	for(i=0; i<TAR_LEN; i++) tar[i] = 0;
+
+	dxSprintf(tar, "%s", filename);
+	dxSprintf(tar + 100, "%.7d", 755);
+	dxSprintf(tar + 108, "%d", 0); /* UID */
+	dxSprintf(tar + 116, "%d", 0); /* GUID */
+
+	fsize = dxGetFileSize(path);
+	/*dxSprintf(tar + 124, "%.11d", dec2oct(fsize) );*/
+	dxSprintf(tar + 124, "%s", dec2octStr(fsize, octBuf) );
+
+	dec2octStr( dxFileModTime(path), octBuf );
+	/*dxPrintf(" dxFileModTime(path) = %lu dec = %s oct\n", dxFileModTime(path), octBuf);*/
+	dxSprintf(tar + 136, "%s", octBuf);
+
+	sum = 0;
+	for(i=0; i<TAR_LEN; i++)
+		sum += (i >= 148 && i < 148+8) ? ' ' : tar[i];
+	dxSprintf(tar + 148, "%s", dec2octStr(sum, octBuf) );
+
+	tar[156] = type;
+	/* if regular file */
+	if( type == 0 ){
+		if( fsize == 0 ) return TAR_LEN;
+		in = dxOpenRead(path);
+		if( ! dxInFileCheck(in) ){
+			/*dxPrintf("Can't open file: %s\n", path);*/
+			return TAR_LEN;
+		}
+	}
+
+
+	readed = 0;
+	iterCount = 0;
+	/*if( type != DX_TAR_DIR )*/
+	do{
+		dxRead(in, tar + TAR_LEN + readed, sizeof(char), TAR_LEN, res);
+		/*dxPrintf("Iteration. Shift = %ld; readed = %d\n", TAR_LEN + readed, res);*/
+		if( res < TAR_LEN )
+			for(i = TAR_LEN + readed + res; i< 2*TAR_LEN + readed; i++)
+				tar[i] = 0;
+		readed += res;
+		iterCount++;
+	} while( res == TAR_LEN );
+
+	return TAR_LEN * (iterCount+1);
+}
+
+
+int gzipToFile(char* tar, dxFileSize tarSize, const char* archiveName){
+	unsigned char* gzipBuf;
+	unsigned crc, j;
+	size_t gzipSize;
+	char crcBuf[8];
+	dxOutFileType outGzipFile;
+
+	gzipSize = 10;
+	gzipBuf = (unsigned char*)dxMemAlloc(gzipSize, 1);
+	gzipBuf[0] = 31;  /* ID1 */
+	gzipBuf[1] = 139; /* ID2 */
+	gzipBuf[2] = 8; /* CM */
+	gzipBuf[3] = 0; /* FLG */
+	/* MTIME */
+	gzipBuf[4] = 0;
+	gzipBuf[5] = 0;
+	gzipBuf[6] = 0;
+	gzipBuf[7] = 0;
+
+	gzipBuf[8] = 2; /* 2 = slow, 4 = fast compression */
+	gzipBuf[9] = 255; /* OS unknown */
+
+	lodepng_deflate(&gzipBuf, (size_t*) &gzipSize, (unsigned char*) &tar[0], tarSize, &lodepng_default_compress_settings);
+	crc = lodepng_crc32( (unsigned char*) &tar[0], tarSize);
+
+	crcBuf[0] = crc % 256;
+	crcBuf[1] = (crc >> 8) % 256;
+	crcBuf[2] = (crc >> 16) % 256;
+	crcBuf[3] = (crc >> 24) % 256;
+
+	crcBuf[4] = tarSize % 256;
+	crcBuf[5] = (tarSize >> 8) % 256;
+	crcBuf[6] = (tarSize >> 16) % 256;
+	crcBuf[7] = (tarSize >> 24) % 256;
+
+	outGzipFile = dxOpenWriteBin(archiveName);
+	for(j=0; j<gzipSize; j++)
+		dxFprintf(outGzipFile,"%c", gzipBuf[j]);
+	for(j=0; j<sizeof(crcBuf); j++)
+		dxFprintf(outGzipFile,"%c", crcBuf[j]);
+	dxCloseOutFile(outGzipFile);
+
+	/*outGzipFile = dxOpenWriteBin("arhiveName.tar");
+	for(j=0; j<tarSize; j++)
+		dxFprintf(outGzipFile,"%c", tar[j]);
+	dxCloseOutFile(outGzipFile);*/
+	dxMemFree(gzipBuf);
+	return 0;
 }

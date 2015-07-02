@@ -60,6 +60,8 @@ int Read3dFile(TPMDObj* p, const char* fileName){
 		p->outFile[i++] = 'j';
 		p->outFile[i++] = 0;
 	}
+	/*for(i=0; i<dxStrLen(p->outFile)+1; i++)
+		p->resultFile[i] = p->outFile[i];*/
 	for(i=0; i<=n+4; i++)
 		p->mtlFile[i] = p->outFile[i];
 	if( p->format == FORMAT_OBJ ){
@@ -70,11 +72,23 @@ int Read3dFile(TPMDObj* p, const char* fileName){
 		p->mtlFile[i++] = 0;
 	}
 
+	for(i=0; i<=n+4; i++)
+		p->gzipFile[i] = p->outFile[i];
+	{
+		i = n+1;
+		p->gzipFile[i++] = 't';
+		p->gzipFile[i++] = 'g';
+		p->gzipFile[i++] = 'z';
+		p->gzipFile[i++] = 0;
+	}
+
 	n = dxStrLen(p->mtlFile);
 	i=n;
 	while( (i>0) && (p->mtlFile[i-1]!='/') && (p->mtlFile[i-1]!='\\') ) i--;
-	for(j=0; i<=n; i++, j++)
+	for(j=0; i<=n; i++, j++){
 		p->mtlBase[j] = p->mtlFile[i];
+		p->resultFile[j] = p->outFile[i];
+	}
 
 
 	/* Actual file reading */
@@ -111,8 +125,8 @@ int PmExtendedReadFile(TPMDObj* p){
 	TIndex4 ti4;
 	dxULong4 TexCount;
 	dxULong4 TexLen[300];
-	char Tex[300][MAX_PATH];
-	char tmpFile[MAX_PATH];
+	char Tex[300][DX_MAX_PATH];
+	char tmpFile[DX_MAX_PATH];
 	TPMXMatPart mp;
 	dxULong4 textureIndex;
 	dxInt1 toonFlag;
@@ -191,12 +205,12 @@ int PmExtendedReadFile(TPMDObj* p){
 	}
 
 	dxRead(p->in, &TexCount, sizeof(dxULong4), 1, res);
-	for(j=0; j<MAX_PATH; j++)
+	for(j=0; j<DX_MAX_PATH; j++)
 		tmpFile[j] = 0;
 	for(i=0; i<TexCount; i++){
 		dxRead(p->in, &TexLen[i], sizeof(dxULong4), 1, res);
 		dxRead(p->in, &tmpFile, sizeof(char), TexLen[i], res);
-		dxWideCharToAscii(Tex[i], (wchar_t*)tmpFile, MAX_PATH);
+		dxWideCharToAscii(Tex[i], (wchar_t*)tmpFile, DX_MAX_PATH);
 
 		/* dxPrintf("Tex[%d](%lu) = '%s'", i, TexLen[i], Tex[i]); */
 		for(j=0; j<TexLen[i]; j++) tmpFile[j] = 0;
@@ -456,6 +470,61 @@ int ObjWriteFaces(TPMDObj* p){
 
 	dxCloseOutFile(p->out);
 	return 0;
+}
+
+
+int Pmd2Gzip(TPMDObj* p){
+	#define GZIP_DEBUG 0
+	unsigned j, k, ti;
+	char tmpPath[DX_MAX_PATH];
+	int alreadyDone, res;
+	dxFileSize curSize, tarSize;
+	char* tar = NULL;
+	#if GZIP_DEBUG
+	unsigned curCount = 0;
+	dxPrintf("Archive content: \n");
+	#endif
+
+	tarSize = 0;
+	curSize = 0;
+	for(ti=0; ti<2; ti++){
+		if( ti == 1 ) tar = (char*)dxBigAlloc(tarSize, 1);
+
+		ZeroFill(tmpPath, DX_MAX_PATH);
+		dxSprintf(tmpPath, "%s\\%s", p->outBase, p->resultFile);
+		if( ti == 0 ) tarSize += tarGetSize( tmpPath );
+				else curSize += tarAppend(tar + curSize, tmpPath, p->resultFile);
+
+		if( p->format == FORMAT_OBJ ){
+			ZeroFill(tmpPath, DX_MAX_PATH);
+			dxSprintf(tmpPath, "%s\\%s", p->outBase, p->mtlBase);
+			if( ti == 0 ) tarSize += tarGetSize( tmpPath );
+					else curSize += tarAppend(tar + curSize, tmpPath, p->mtlBase);
+		}
+		/* Add textures */
+		for(j=0; j< p->materialCount; j++){
+			ZeroFill(tmpPath, DX_MAX_PATH);
+			dxSprintf(tmpPath, "%s\\%s", p->outBase, p->fm[j].fileName);
+			alreadyDone = 0;
+			for(k=0; k<j; k++)
+				if( dxStrCmp(p->fm[j].fileName, p->fm[k].fileName) == 0 )
+					alreadyDone = 1;
+
+			if( !alreadyDone && dxFileExists(tmpPath) && (dxStrLen(p->fm[j].fileName)>0) ){
+				#if GZIP_DEBUG
+				if( ti == 1 ) dxPrintf("%d. %s (%d / %d)\n", curCount+1, p->fm[j].fileName,
+							dxGetFileSize(tmpPath), tarGetSize(tmpPath) );
+				curCount++;
+				#endif
+				if( ti == 0 ) tarSize += tarGetSize( tmpPath );
+					else curSize += tarAppend(tar + curSize, tmpPath, p->fm[j].fileName);
+			}
+		}
+	}
+	res = gzipToFile(tar, curSize, p->gzipFile);
+	dxBigFree(tar);
+	return res;
+	#undef GZIP_DEBUG
 }
 
 

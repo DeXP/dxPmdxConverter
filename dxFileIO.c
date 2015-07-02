@@ -51,17 +51,19 @@ int dxCloseInFile(dxInFileType ft){
 
 void dxReadInternal(dxInFileType* ft, void* ptr, size_t onesize, size_t count, DWORD* readed){
 	/* CopyMemory(ptr, ft->ptr, count*onesize); */
-	size_t i;
+	size_t i, readCount;
 	char *d = ptr;
 	const char *s = ft->ptr;
 	s += ft->readed;
 
-	for(i=0; i<count*onesize; i++) {
+	readCount = count*onesize;
+	if( ft->sizeLo - ft->readed < readCount ) readCount = ft->sizeLo - ft->readed;
+	for(i=0; i<readCount; i++) {
 		d[i] = s[i];
 	}
-	ft->readed += count*onesize;
-	*readed = count*onesize;
-	if( ft->sizeLo < ft->readed ) *readed = 0;
+	ft->readed += readCount;
+	*readed = readCount;
+	/*if( ft->sizeLo < ft->readed ) *readed = 0;*/
 }
 
 
@@ -190,6 +192,44 @@ int dxFileExists(const char* fileName){
 	return GetFileAttributes(fileName) != INVALID_FILE_ATTRIBUTES;
 }
 
+dxFileSize dxGetFileSize(const char* fileName){
+	HANDLE file;
+	dxFileSize res;
+	file = CreateFile(fileName, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if(file == INVALID_HANDLE_VALUE){
+		CloseHandle(file);
+		return 0;
+	}
+	res = GetFileSize(file, NULL);
+	CloseHandle(file);
+	return res;
+}
+
+unsigned long dxFileModTime(const char* fileName){
+	HANDLE file;
+	FILETIME modTime;
+	ULARGE_INTEGER date, adjust;
+	file = CreateFile(fileName, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if(file == INVALID_HANDLE_VALUE) return 0;
+	if( !GetFileTime(file, NULL, NULL, &modTime) ){
+		CloseHandle(file);
+		return 0;
+	}
+	CloseHandle(file);
+	date.HighPart = modTime.dwHighDateTime;
+	date.LowPart = modTime.dwLowDateTime;
+	adjust.QuadPart = 1164447360;
+	adjust.QuadPart *= 100000000;
+	date.QuadPart -= adjust.QuadPart;
+	return (unsigned long)(date.QuadPart / 10000000);
+}
+
+
+int dx_init_console(const char* title){
+	SetConsoleTitle(title);
+	return 0;
+}
+
 #else
 
 int dxFileExists(const char* fileName){
@@ -203,6 +243,89 @@ int dxFileExists(const char* fileName){
 	}
 }
 
+dxFileSize dxGetFileSize(const char* fileName){
+	size_t size = 0;
+	FILE *file = NULL;
+    file = fopen(fileName,"rb");
+    if( file == NULL ) return 0;
+    fseek(file, 0, SEEK_END);
+    size = ftell(file);
+    fclose(file);
+    return size;
+}
+
+unsigned long dxFileModTime(const char* fileName){
+#ifndef NOSTAT
+	struct stat st;
+	if( stat(fileName, &st) ) return 0;
+	#ifdef __MACH__
+	return st.st_mtimespec.tv_sec;
+	#else
+	return st.st_mtime;
+	#endif
+#else
+	return 0;
+#endif
+}
+
+
+#ifdef KOLIBRIOS
+#pragma pack(push,1)
+typedef struct{
+	char *name;
+	void *data;
+} kol_struct_import;
+#pragma pack(pop)
+void (* _stdcall con_init)(unsigned w_w, unsigned w_h, unsigned s_w, unsigned s_h, const char* t);
+
+void kol_exit(){
+	asm ("int $0x40"::"a"(-1));
+}
+
+kol_struct_import* kol_cofflib_load(char *name){
+	asm volatile ("int $0x40"::"a"(68), "b"(19), "c"(name));
+}
+
+void* kol_cofflib_procload(kol_struct_import *imp, char *name){
+	int i;
+	for (i=0;;i++)
+		if ( NULL == ((imp+i) -> name))
+			break;
+		else
+			if ( 0 == strcmp(name, (imp+i)->name) )
+				return (imp+i)->data;
+	return NULL;
+}
+
+int dx_init_console(const char* title){
+	kol_struct_import *imp;
+
+	imp = kol_cofflib_load("/sys/lib/console.obj");
+	if( imp == NULL ) kol_exit();
+
+	con_init = ( _stdcall  void (*)(unsigned, unsigned, unsigned, unsigned, const char*))
+                kol_cofflib_procload (imp, "con_init");
+	if( con_init == NULL ) kol_exit();
+
+	con_printf = ( _cdecl void (*)(const char*,...))
+                kol_cofflib_procload (imp, "con_printf");
+	if( con_printf == NULL ) kol_exit();
+	con_init(-1, -1, -1, -1, title);
+	con_printf("Console inited!\n");
+	return 0;
+}
+#else
+int dx_init_console(const char* title){
+	if( title[0] ) return 1;
+	return 0;
+}
+#endif
+
 #endif /* WINAPIONLY */
 
+int ZeroFill(char* buf, int size){
+	int i;
+	for(i=0; i<size; i++) buf[i] = 0;
+	return 0;
+}
 

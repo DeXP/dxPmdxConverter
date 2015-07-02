@@ -1,0 +1,26 @@
+CC=x86_64-apple-darwin11-gcc-cross
+LD=x86_64-apple-darwin11-gcc-cross
+REMOVE=/usr/bin/rm
+CFLAGS=-c -O2 -I/usr/x86_64-apple-darwin11/MacOSX10.7.sdk/usr/include -x c
+LDFLAGS=-L/usr/x86_64-apple-darwin11/MacOSX10.7.sdk/usr/lib -L/usr/x86_64-apple-darwin11/MacOSX10.7.sdk/usr/lib/system
+SOURCES=main.c pmdx2obj.c dxFileIO.c bmpconvert.c
+OBJECTS=$(SOURCES:.c=.o)
+EXECUTABLE=dxPmdxConverter.macos.bin
+
+export PATH=$PATH:/usr/x86_64-apple-darwin11/usr/bin
+
+all: $(SOURCES) $(EXECUTABLE)
+	
+$(EXECUTABLE): $(OBJECTS)
+	$(LD) $(LDFLAGS) $(OBJECTS) -o $@
+	$(REMOVE) $(OBJECTS)
+
+.cpp.o:
+	$(CC) $(CFLAGS) $< -o $@
+
+clean:
+	$(REMOVE) $(OBJECTS)
+	$(REMOVE) $(EXECUTABLE)
+
+upx:
+	/usr/bin/upx --ultra-brute $(EXECUTABLE) && /usr/bin/mv $(EXECUTABLE) bin/$(EXECUTABLE)

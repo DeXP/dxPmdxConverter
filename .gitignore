@@ -8,4 +8,7 @@ obj
 *.obj
 *.bmp
 *.mtl
+*.tar
+*.tgz
+*.tarm
 *.layout
