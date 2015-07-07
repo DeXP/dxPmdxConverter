@@ -512,8 +512,8 @@ int Pmd2Gzip(TPMDObj* p){
 
 			if( !alreadyDone && dxFileExists(tmpPath) && (dxStrLen(p->fm[j].fileName)>0) ){
 				#if GZIP_DEBUG
-				if( ti == 1 ) dxPrintf("%d. %s (%d / %d)\n", curCount+1, p->fm[j].fileName,
-							dxGetFileSize(tmpPath), tarGetSize(tmpPath) );
+				if( ti == 1 ) dxPrintf("%d. %s (%u / %u)\n", curCount+1, p->fm[j].fileName,
+							(unsigned) dxGetFileSize(tmpPath), (unsigned) tarGetSize(tmpPath) );
 				curCount++;
 				#endif
 				if( ti == 0 ) tarSize += tarGetSize( tmpPath );

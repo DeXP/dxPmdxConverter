@@ -142,6 +142,7 @@ int main(int argc, char** argv){
 			}
 		}
 		dxPrintf("Real TAR size: %lu\n", (long unsigned)curSize );
+		if( tarSize != curSize ) dxPrintf("!!! Something wrong. Sizes are not equal !!!\n");
 
 		gzipToFile(tarBuf, curSize, fileName);
 		dxBigFree(tarBuf);

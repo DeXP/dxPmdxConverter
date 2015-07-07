@@ -398,12 +398,14 @@ dxFileSize tarAppend(char* tar, const char* path, const char* filename){
 	/*if( type != DX_TAR_DIR )*/
 	do{
 		dxRead(in, tar + TAR_LEN + readed, sizeof(char), TAR_LEN, res);
-		/*dxPrintf("Iteration. Shift = %ld; readed = %d\n", TAR_LEN + readed, res);*/
-		if( res < TAR_LEN )
-			for(i = TAR_LEN + readed + res; i< 2*TAR_LEN + readed; i++)
-				tar[i] = 0;
-		readed += res;
-		iterCount++;
+		if( res > 0 ){
+			/*dxPrintf("Iteration. Shift = %ld; readed = %d\n", TAR_LEN + readed, res);*/
+			if( res < TAR_LEN )
+				for(i = TAR_LEN + readed + res; i< 2*TAR_LEN + readed; i++)
+					tar[i] = 0;
+			readed += res;
+			iterCount++;
+		}
 	} while( res == TAR_LEN );
 
 	return TAR_LEN * (iterCount+1);

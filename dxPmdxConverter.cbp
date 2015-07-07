@@ -10,22 +10,12 @@
 				<Option output="bin/Debug/dxPmdxConverter" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
-				<Option compiler="x64_gnu_gcc_compiler" />
-				<Option parameters="-c e:\OneMangaDay\test\DragonTail\drgtail.pmd" />
+				<Option compiler="gcc" />
+				<Option parameters="-g archDebug.tgz AqPicFlash.exe" />
 				<Compiler>
 					<Add option="-ansi" />
 					<Add option="-g" />
 				</Compiler>
-				<Linker>
-					<Add option="-Wl,--stack=0x1000000" />
-					<Add option="-Wl,--heap=0x1000000" />
-					<Add library="kernel32" />
-					<Add library="user32" />
-					<Add library="comdlg32" />
-					<Add library="shell32" />
-					<Add library="gdi32" />
-					<Add library="gcc" />
-				</Linker>
 			</Target>
 			<Target title="win32">
 				<Option output="bin/win32/dxPmdxConverter" prefix_auto="1" extension_auto="1" />

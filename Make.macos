@@ -23,4 +23,4 @@ clean:
 	$(REMOVE) $(EXECUTABLE)
 
 upx:
-	/usr/bin/upx --ultra-brute $(EXECUTABLE) && /usr/bin/mv $(EXECUTABLE) bin/$(EXECUTABLE)
+	/usr/bin/upx --best $(EXECUTABLE) && /usr/bin/mv $(EXECUTABLE) bin/$(EXECUTABLE)

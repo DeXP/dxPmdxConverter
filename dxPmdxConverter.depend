@@ -2,7 +2,7 @@
 1424629715 source:e:\work\pmdx2obj\pmdx2obj.c
 	"pmdx2obj.h"
 
-1425650358 h"
+1425824332 h"
 
 1424633812 source:e:\work\pmdx2obj\startmain.s
 
@@ -47,7 +47,7 @@
 
 1424629169 >
 
-1435843117 source:e:\work\dxpmdxconverter\main.c
+1436279931 source:e:\work\dxpmdxconverter\main.c
 	"pmdx2obj.h"
 	"bmpconvert.h"
 	"wingui.h"
@@ -55,6 +55,8 @@
 1434808788 e:\work\dxpmdxconverter\pmdx2obj.h
 	"dxFileIO.h"
 	"bmpconvert.h"
+
+1425822992 t.h"
 
 1435838607 e:\work\dxpmdxconverter\dxfileio.h
 	<inttypes.h>
@@ -66,6 +68,8 @@
 	<time.h>
 	<sys/stat.h>
 
+1435838607 h>
+
 1426937957 e:\work\dxpmdxconverter\wingui.h
 	<windows.h>
 	<commctrl.h>
@@ -74,8 +78,6 @@
 	"pmdx2obj.h"
 	"dxFileIO.h"
 	"bmpconvert.h"
-
-1425822992 t.h"
 
 1435745381 e:\work\dxpmdxconverter\resource.h
 
@@ -89,7 +91,7 @@
 1424629169 e:\work\dxpmdxconverter\afxres.h
 	<windows.h>
 
-1435838733 source:e:\work\dxpmdxconverter\pmdx2obj.c
+1436280422 source:e:\work\dxpmdxconverter\pmdx2obj.c
 	"pmdx2obj.h"
 
 1424793272 source:e:\work\dxpmdxconverter\startmain.s
@@ -99,7 +101,7 @@
 
 1354191818 source:e:\work\dxpmdxconverter\startmain64.s
 
-1426927656 source:/mnt/work/work/dxPmdxConverter/main.c
+1436279931 source:/mnt/work/work/dxPmdxConverter/main.c
 	"pmdx2obj.h"
 	"wingui.h"
 	"pmdx2obj.h"
@@ -108,13 +110,18 @@
 	"pmdx2obj.h"
 	"bmpconvert.h"
 	"wingui.h"
+	"pmdx2obj.h"
+	"bmpconvert.h"
+	"wingui.h"
 
-1426927984 /mnt/work/work/dxPmdxConverter/pmdx2obj.h
+1434808788 /mnt/work/work/dxPmdxConverter/pmdx2obj.h
 	"dxFileIO.h"
 	"dxFileIO.h"
 	"dxFileIO.h"
+	"dxFileIO.h"
+	"bmpconvert.h"
 
-1426432287 /mnt/work/work/dxPmdxConverter/dxFileIO.h
+1435838607 /mnt/work/work/dxPmdxConverter/dxFileIO.h
 	<stdint.h>
 	<windows.h>
 	<stdarg.h>
@@ -136,8 +143,16 @@
 	<stdlib.h>
 	<string.h>
 	<time.h>
+	<inttypes.h>
+	<windows.h>
+	<stdarg.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<time.h>
+	<sys/stat.h>
 
-1425822992 /mnt/work/work/dxPmdxConverter/wingui.h
+1426937957 /mnt/work/work/dxPmdxConverter/wingui.h
 	<windows.h>
 	<commctrl.h>
 	<richedit.h>
@@ -157,20 +172,29 @@
 	"pmdx2obj.h"
 	"dxFileIO.h"
 	"bmpconvert.h"
+	<windows.h>
+	<commctrl.h>
+	<richedit.h>
+	"resource.h"
+	"pmdx2obj.h"
+	"dxFileIO.h"
+	"bmpconvert.h"
 
-1426428528 /mnt/work/work/dxPmdxConverter/resource.h
+1435745381 /mnt/work/work/dxPmdxConverter/resource.h
 
-1426421087 source:/mnt/work/work/dxPmdxConverter/dxFileIO.c
+1435843079 source:/mnt/work/work/dxPmdxConverter/dxFileIO.c
 	"dxFileIO.h"
 	"dxFileIO.h"
 	"dxFileIO.h"
+	"dxFileIO.h"
 
-1426432212 source:/mnt/work/work/dxPmdxConverter/pmdx2obj.c
+1435838733 source:/mnt/work/work/dxPmdxConverter/pmdx2obj.c
+	"pmdx2obj.h"
 	"pmdx2obj.h"
 	"pmdx2obj.h"
 	"pmdx2obj.h"
 
-1435843020 source:e:\work\dxpmdxconverter\bmpconvert.c
+1436278389 source:e:\work\dxpmdxconverter\bmpconvert.c
 	"bmpconvert.h"
 	"lodepng.h"
 	"lodepng.c"
@@ -194,7 +218,10 @@
 	<stdlib.h>
 	<fstream>
 
-1426432447 source:/mnt/work/work/dxPmdxConverter/bmpconvert.c
+1436278389 source:/mnt/work/work/dxPmdxConverter/bmpconvert.c
+	"bmpconvert.h"
+	"lodepng.h"
+	"lodepng.c"
 	"bmpconvert.h"
 	"lodepng.h"
 	"lodepng.c"
@@ -202,11 +229,12 @@
 	"lodepng.h"
 	"lodepng.c"
 
-1425824332 /mnt/work/work/dxPmdxConverter/bmpconvert.h
+1434807201 /mnt/work/work/dxPmdxConverter/bmpconvert.h
+	"dxFileIO.h"
 	"dxFileIO.h"
 	"dxFileIO.h"
 
-1425646177 /mnt/work/work/dxPmdxConverter/lodepng.h
+1434801979 /mnt/work/work/dxPmdxConverter/lodepng.h
 	<string.h>
 	<vector>
 	<string>
@@ -219,8 +247,18 @@
 	"lodepng.h"
 	<iostream>
 	"lodepng.h"
+	<string.h>
+	<vector>
+	<string>
+	"lodepng.h"
+	<iostream>
+	"lodepng.h"
 
-1425646168 /mnt/work/work/dxPmdxConverter/lodepng.c
+1434802004 /mnt/work/work/dxPmdxConverter/lodepng.c
+	"lodepng.h"
+	<stdio.h>
+	<stdlib.h>
+	<fstream>
 	"lodepng.h"
 	<stdio.h>
 	<stdlib.h>
@@ -252,4 +290,7 @@
 	<sys/param.h>
 
 1425809016 .h>
+
+1435750244 source:/mnt/work/work/dxPmdxConverter/wingui.c
+	"wingui.h"
 
